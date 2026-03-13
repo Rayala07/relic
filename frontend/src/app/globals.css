@@ -1,0 +1,226 @@
+/**
+ * globals.css
+ *
+ * Global stylesheet for the Relic landing page — Tailwind v4 format.
+ *
+ * Tailwind v4 uses CSS-based configuration instead of tailwind.config.ts.
+ * All design tokens (colors, fonts, shadows, animations) are defined here
+ * inside the @theme block, which replaces the old `theme.extend` object.
+ *
+ * Key sections:
+ *  1. @import "tailwindcss"  — loads all Tailwind utilities
+ *  2. @theme { ... }         — custom design tokens (replaces tailwind.config.ts)
+ *  3. Base element styles     — dark background, smooth scrolling, etc.
+ *  4. Utility classes         — glass, gradient-text, section-pad, animations
+ */
+
+/* Import Tailwind v4 (includes base reset, utilities, etc.) */
+@import "tailwindcss";
+
+/* Import Remix Icon library */
+@import "remixicon/fonts/remixicon.css";
+
+/* =========================================================================
+   @theme — Relic Design Tokens
+   This is the Tailwind v4 way of extending the theme. All token values
+   defined here become available as Tailwind utility classes automatically.
+   For example: `--color-accent` → `text-accent`, `bg-accent`, etc.
+   ========================================================================= */
+@theme {
+  /* -----------------------------------------------------------------------
+     Color Palette
+     ----------------------------------------------------------------------- */
+
+  /** Page background — deep black */
+  --color-background: #0b0b0c;
+
+  /** Card/surface background — slightly lighter than background */
+  --color-surface: #111113;
+
+  /** Primary brand accent — blue-purple */
+  --color-accent: #6b8afd;
+
+  /** Lighter accent for hover states */
+  --color-accent-hover: #7b9afe;
+
+  /** Primary text — near white */
+  --color-text-primary: #f5f5f7;
+
+  /** Secondary/muted text — gray */
+  --color-text-secondary: #a1a1aa;
+
+  /* -----------------------------------------------------------------------
+     Font Families
+     CSS variables are injected by Next.js next/font/google in layout.tsx.
+     Tailwind reads these variables to apply font classes (font-sans, etc.)
+     ----------------------------------------------------------------------- */
+
+  /** Primary UI font — Inter */
+  --font-sans: var(--font-inter), system-ui, sans-serif;
+
+  /** Display/heading font — Space Grotesk */
+  --font-display: var(--font-space-grotesk), system-ui, sans-serif;
+
+  /* -----------------------------------------------------------------------
+     Box Shadows
+     ----------------------------------------------------------------------- */
+
+  /** Default card depth shadow */
+  --shadow-card: 0 1px 3px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.06);
+
+  /** Accent glow shadow — used on button hover and card hover */
+  --shadow-glow: 0 0 20px rgba(107,138,253,0.35);
+
+  /** Larger glow for section accents */
+  --shadow-glow-lg: 0 0 40px rgba(107,138,253,0.25);
+
+  /* -----------------------------------------------------------------------
+     Animations (Keyframes)
+     ----------------------------------------------------------------------- */
+
+  /** Fade up: element fades in while sliding up from below */
+  --animate-fade-up: fade-up 0.6s ease-out forwards;
+
+  /** Float: continuous gentle up-and-down bob (hero mockup) */
+  --animate-float: float 4s ease-in-out infinite;
+
+  /** Slower float variant for background elements */
+  --animate-float-slow: float 6s ease-in-out infinite;
+
+  /** Delayed float variant so elements are out of sync */
+  --animate-float-delayed: float 5s ease-in-out 1s infinite;
+
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(24px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes float {
+    0%, 100% { transform: translateY(0px); }
+    50%       { transform: translateY(-10px); }
+  }
+}
+
+/* =========================================================================
+   CSS Custom Properties
+   These mirror the @theme tokens so they are also usable in plain CSS,
+   inline styles, or SVG elements where Tailwind utilities don't apply.
+   ========================================================================= */
+:root {
+  --color-bg: #0b0b0c;
+  --color-border: rgba(255, 255, 255, 0.08);
+}
+
+/* =========================================================================
+   Base Element Styles
+   ========================================================================= */
+
+html {
+  /* Smooth scroll when anchor links are clicked (e.g. #features) */
+  scroll-behavior: smooth;
+  background-color: var(--color-background);
+}
+
+body {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+  /* Prevent horizontal scroll on mobile from overflowing content */
+  overflow-x: hidden;
+  /* Improve font rendering on all OS */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* =========================================================================
+   Custom Scrollbar — dark theme styling
+   ========================================================================= */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0b0b0c; }
+::-webkit-scrollbar-thumb { background: rgba(107,138,253,0.3); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(107,138,253,0.5); }
+
+/* =========================================================================
+   Text selection highlight color
+   ========================================================================= */
+::selection {
+  background-color: rgba(107, 138, 253, 0.3);
+  color: #f5f5f7;
+}
+
+/* =========================================================================
+   Utility Classes
+   These are not Tailwind utilities — they're custom CSS classes that
+   produce effects too complex to express with single Tailwind tokens.
+   ========================================================================= */
+
+/**
+ * .glass
+ * Creates the frosted-glass navbar background that appears on scroll.
+ * backdrop-filter blurs the content underneath the element.
+ */
+.glass {
+  background: rgba(11, 11, 12, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+/**
+ * .gradient-text
+ * Makes text appear with a blue-to-purple gradient.
+ * Used on headline accent words to add visual interest.
+ */
+.gradient-text {
+  background: linear-gradient(135deg, #6b8afd 0%, #a78bfa 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/**
+ * .section-pad
+ * Consistent vertical padding for all full-width page sections.
+ * Ensures uniform breathing room between sections at all screen sizes.
+ */
+.section-pad {
+  padding-top: 6rem;
+  padding-bottom: 6rem;
+}
+
+@media (min-width: 768px) {
+  .section-pad {
+    padding-top: 8rem;
+    padding-bottom: 8rem;
+  }
+}
+
+/* =========================================================================
+   Scroll Animation System
+   These classes are toggled by the useScrollAnimation() hook.
+
+   Workflow:
+    1. Apply "animate-on-scroll" to an element in JSX — it starts invisible
+    2. When the element enters the viewport, "is-visible" is added by the hook
+    3. The CSS transition plays, animating opacity and transform together
+   ========================================================================= */
+
+/** Initial state: element is invisible and shifted down slightly */
+.animate-on-scroll {
+  opacity: 0;
+  transform: translateY(24px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+
+/** Final state: element is fully visible at its natural position */
+.animate-on-scroll.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Stagger delay helpers — applied manually in JSX className strings */
+.animate-delay-100 { transition-delay: 100ms; }
+.animate-delay-200 { transition-delay: 200ms; }
+.animate-delay-300 { transition-delay: 300ms; }
+.animate-delay-400 { transition-delay: 400ms; }
+.animate-delay-500 { transition-delay: 500ms; }
+.animate-delay-600 { transition-delay: 600ms; }
