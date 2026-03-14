@@ -66,15 +66,15 @@ export function CTASection() {
 
           {/* Supporting message */}
           <p className="text-text-secondary text-xl leading-relaxed max-w-xl">
-            Every insight you save today becomes the foundation of the
-            knowledge system you&apos;ll depend on tomorrow.
+            Every insight you save today becomes the foundation of the knowledge
+            system you&apos;ll depend on tomorrow.
           </p>
 
           {/* CTA Buttons */}
           <div className="flex flex-col sm:flex-row items-center gap-4 pt-2">
             <Button variant="primary" className="text-base px-8 py-4 text-base">
               <i className="ri-user-add-line" aria-hidden="true" />
-              Create Account — it&apos;s free
+              Create Account, It&apos;s Free
             </Button>
             <Button variant="secondary" className="text-base px-8 py-4">
               <i className="ri-login-box-line" aria-hidden="true" />
@@ -84,7 +84,7 @@ export function CTASection() {
 
           {/* Trust signal — no credit card required */}
           <p className="text-text-secondary/60 text-sm">
-            No credit card required · Free forever plan available
+            No credit card required
           </p>
         </div>
       </div>

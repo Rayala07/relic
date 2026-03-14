@@ -123,7 +123,7 @@ export function HeroSection() {
 
           {/* Small badge above the headline — draws attention first */}
           <div className="flex">
-            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-medium bg-accent/10 border border-accent/20 text-accent">
+            <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-sm text-xs font-medium bg-accent/10 border border-accent/20 text-accent">
               <i className="ri-sparkling-line text-sm" aria-hidden="true" />
               Knowledge memory, reimagined
             </span>
