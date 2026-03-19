@@ -1,9 +1,17 @@
-import { Router } from 'express';
+import { Router } from "express";
+import {
+  register,
+  login,
+  logout,
+  getMe,
+} from "../controllers/auth.controller.js";
+import { verifyToken } from "../middlewares/auth.middleware.js";
 
 const router = Router();
 
-router.get('/', (req, res) => {
-    res.json({ message: "Welcome to Relic API v1" });
-});
+router.post("/register", register);
+router.post("/login", login);
+router.post("/logout", logout);
+router.get("/get-me", verifyToken, getMe);
 
 export default router;
