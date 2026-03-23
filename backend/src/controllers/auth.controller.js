@@ -143,11 +143,15 @@ export const logout = async (req, res) => {
   try {
     const token = req.cookies?.token;
 
-    if (token) {
-      // Blacklist token in Redis for 10 days (864000 seconds)
-      // This matches the token expiration time.
-      await redisClient.setEx(`blacklist:${token}`, 864000, "true");
+    if (!token) {
+      return res
+        .status(400)
+        .json({ success: false, message: "No user logged in, currently" });
     }
+
+    // Blacklist token in Redis for 10 days (864000 seconds)
+    // This matches the token expiration time.
+    await redisClient.setEx(`blacklist:${token}`, 864000, "true");
 
     // Clear the token cookie
     res.clearCookie("token");
