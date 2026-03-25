@@ -3,9 +3,38 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
+    <title>Save to Relic</title>
+    <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <!-- Tailwind for styling -->
+    <div class="container">
+      <header class="header">
+        <span class="logo">⬡ Relic</span>
+      </header>
+
+      <main class="form">
+        <div class="field">
+          <label for="title" class="label">Title</label>
+          <input
+            id="title"
+            type="text"
+            class="input"
+            placeholder="Name this item..."
+            autocomplete="off"
+          />
+        </div>
+
+        <div class="url-preview" id="url-preview">
+          <span class="url-label">URL</span>
+          <span class="url-text" id="url-text">Loading...</span>
+        </div>
+
+        <button id="save-btn" class="btn" disabled>Save</button>
+
+        <div id="status" class="status hidden"></div>
+      </main>
+    </div>
+
+    <script src="popup.js"></script>
   </body>
 </html>

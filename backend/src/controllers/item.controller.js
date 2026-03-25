@@ -1,4 +1,5 @@
 import Item from "../models/item.model.js";
+import detectType from "../utils/detectType.js";
 
 /**
  * Create Item Controller
@@ -13,20 +14,25 @@ import Item from "../models/item.model.js";
  */
 export const createItem = async (req, res) => {
   try {
-    const { title, url, type } = req.body;
+    const { title, url } = req.body;
 
-    // Validate that all required fields are present
-    if (!title || !url || !type) {
+    // url is the only truly required field — type is auto-detected from it,
+    // and title falls back to "Untitled" so clients don't have to send it.
+    if (!url) {
       return res.status(400).json({
         success: false,
-        message: "title, url, and type are required",
+        message: "url is required",
       });
     }
+
+    // Derive type automatically from the URL so the client never needs to send
+    // it. This keeps type data consistent and removes a source of client error.
+    const type = detectType(url);
 
     // Create the item — user field is sourced from the verified JWT payload,
     // not from client input, preventing ownership spoofing.
     const item = await Item.create({
-      title,
+      title: title?.trim() || "Untitled",
       url,
       type,
       user: req.userId,
