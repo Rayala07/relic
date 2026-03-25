@@ -61,7 +61,12 @@ export const register = async (req, res) => {
     if (error.name === "ZodError") {
       return res
         .status(400)
-        .json({ success: false, message: error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ') });
+        .json({
+          success: false,
+          message: error.issues
+            .map((i) => `${i.path.join(".")}: ${i.message}`)
+            .join(", "),
+        });
     }
     console.error("Register Error:", error);
     return res
@@ -123,7 +128,12 @@ export const login = async (req, res) => {
     if (error.name === "ZodError") {
       return res
         .status(400)
-        .json({ success: false, message: error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join(', ') });
+        .json({
+          success: false,
+          message: error.issues
+            .map((i) => `${i.path.join(".")}: ${i.message}`)
+            .join(", "),
+        });
     }
     console.error("Login Error:", error);
     return res
