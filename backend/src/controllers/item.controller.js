@@ -1,5 +1,6 @@
 import Item from "../models/item.model.js";
 import detectType from "../utils/detectType.js";
+import extractionPipeline from "../services/pipeline.js";
 
 /**
  * Create Item Controller
@@ -16,8 +17,9 @@ export const createItem = async (req, res) => {
   try {
     const { title, url } = req.body;
 
-    // url is the only truly required field — type is auto-detected from it,
-    // and title falls back to "Untitled" so clients don't have to send it.
+    // url is the only truly required field — type is auto-detected from it.
+    // title can be provided by the client (e.g. extension), otherwise it will
+    // be populated by the extraction pipeline later in the background.
     if (!url) {
       return res.status(400).json({
         success: false,
@@ -32,13 +34,19 @@ export const createItem = async (req, res) => {
     // Create the item — user field is sourced from the verified JWT payload,
     // not from client input, preventing ownership spoofing.
     const item = await Item.create({
-      title: title?.trim() || "Untitled",
+      title: title?.trim() || "",
       url,
       type,
       user: req.userId,
     });
 
-    return res.status(201).json({ success: true, data: item });
+    res.status(201).json({ success: true, data: item });
+
+    // Fire-and-forget — pipeline runs in the background after the response
+    // is already sent. User never waits for extraction to complete.
+    extractionPipeline(item._id).catch(console.error);
+
+    return;
   } catch (error) {
     console.error("CreateItem Error:", error);
     return res
