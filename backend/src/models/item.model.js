@@ -37,11 +37,11 @@ const itemSchema = new mongoose.Schema(
      * before extraction runs in the background.
      */
     content: {
-      title:     { type: String, default: "" }, // extracted title (may differ from item title)
-      body:      { type: String, default: "" }, // clean plain text — the main extracted content
-      author:    { type: String, default: "" }, // byline / channel name / tweet author
-      excerpt:   { type: String, default: "" }, // first ~300 chars for UI previews
-      wordCount: { type: Number, default: 0  }, // body.split(" ").length
+      title: { type: String, default: "" }, // extracted title (may differ from item title)
+      body: { type: String, default: "" }, // clean plain text — the main extracted content
+      author: { type: String, default: "" }, // byline / channel name / tweet author
+      excerpt: { type: String, default: "" }, // first ~300 chars for UI previews
+      wordCount: { type: Number, default: 0 }, // body.split(" ").length
     },
 
     extractionStatus: {
@@ -49,12 +49,18 @@ const itemSchema = new mongoose.Schema(
       enum: ["pending", "resolved", "rejected"],
       default: "pending",
     },
-
-    /**
-     * Reference to the owning User document.
-     * This is the foundation of the ownership model — every DB query
-     * for items MUST include this field to avoid returning other users' data.
-     */
+    ai: {
+      embedding: {
+        vector: { type: [Number], default: [] },
+        model: { type: String, default: "" },
+        generatedAt: { type: Date },
+      },
+    },
+    embeddingStatus: {
+      type: String,
+      enum: ["pending", "resolved", "failed"],
+      default: "pending",
+    },
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",

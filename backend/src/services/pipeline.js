@@ -1,26 +1,25 @@
 import Item from "../models/item.model.js";
 import { extract } from "./extract.js";
+import { generateEmbedding } from "./embedder.js";
 
 /**
  * pipeline.js — The Orchestrator
  *
- * This is the background job that runs AFTER the HTTP response is sent.
- * It is always called with `.catch(console.error)` and never awaited by
- * the controller — this is the "fire-and-forget" pattern.
+ * Background job that runs AFTER the HTTP response is sent (fire-and-forget).
+ * Never awaited by the controller — errors are caught and logged here.
  *
- * Pipeline stages:
- *   1. Fetch the item from DB to get its URL
- *   2. Call extract(url) → detect type → run matching extractor
- *   3. Write the result back to item.content + set status "resolved"
- *   4. On any error → set status "rejected" so the item isn't left as "pending"
+ * 4 stages, each independent:
+ *   Stage 1 — Fetch item from DB
+ *   Stage 2 — Extract content from URL (webpage/pdf/youtube/tweet/image)
+ *   Stage 3 — Save extracted content → extractionStatus: "resolved"
+ *   Stage 4 — Generate embedding   → embeddingStatus:  "resolved"
  *
- * WHY two separate findByIdAndUpdate calls instead of one?
- * Because extract() can take 2–10 seconds. If the server crashes mid-extraction,
- * the status would remain "pending" which is correct — it can be retried.
- * Only after a successful extraction do we write content + "resolved" together.
+ * Stage isolation — if Stage 4 fails, Stage 3 data is already safely saved.
+ * extractionStatus stays "resolved" — only embeddingStatus turns "failed".
+ * This prevents a MiniLM crash from making an item appear completely broken.
  */
 async function extractionPipeline(itemId) {
-  // Stage 1: Get the item — we need its URL to run extraction
+  // ── Stage 1: Fetch item ────────────────────────────────────────────────────
   const item = await Item.findById(itemId);
 
   if (!item) {
@@ -28,27 +27,24 @@ async function extractionPipeline(itemId) {
     return;
   }
 
-  try {
-    // Stage 2: Run extraction via the router
-    // extract() handles: detect type → pick extractor → return { type, content }
-    const { content } = await extract(item.url);
+  // ── Stage 2 & 3: Extract + save content ───────────────────────────────────
+  let content;
 
-    // Stage 3: Persist extracted content and mark as resolved
-    // If the user provided a title, we don't overwrite it. If they didn't,
-    // we take the title the extractor found.
+  try {
+    const result = await extract(item.url);
+    content = result.content;
+
+    // User title takes priority — only use extracted title if user gave none
     const finalTitle = item.title || content.title;
 
-    // Update the main document title and populate the content subdocument.
     await Item.findByIdAndUpdate(itemId, {
       title: finalTitle,
       content: {
-        title:     content.title, // Keep the raw extracted one here just in case
+        title:     content.title,
         body:      content.body,
         author:    content.author,
         excerpt:   content.excerpt,
-        wordCount: content.body
-          ? content.body.split(" ").filter(Boolean).length
-          : 0,
+        wordCount: content.body ? content.body.split(" ").filter(Boolean).length : 0,
       },
       extractionStatus: "resolved",
     });
@@ -56,14 +52,28 @@ async function extractionPipeline(itemId) {
     console.log(`Pipeline: extracted "${content.title}" for item ${itemId}`);
 
   } catch (err) {
-    // Stage 4: Mark as rejected so the UI can show a failed state
-    // We log the error but never throw — this runs in the background,
-    // there is nobody to receive an uncaught error.
+    await Item.findByIdAndUpdate(itemId, { extractionStatus: "rejected" });
+    console.error(`Pipeline: extraction failed for item ${itemId} —`, err.message);
+    return; // no point continuing to embedding if extraction failed
+  }
+
+  // ── Stage 4: Generate embedding ────────────────────────────────────────────
+  // Runs independently — a failure here does NOT affect extractionStatus.
+  try {
+    const { vector, model } = await generateEmbedding(content);
+
     await Item.findByIdAndUpdate(itemId, {
-      extractionStatus: "rejected",
+      "ai.embedding.vector":      vector,
+      "ai.embedding.model":       model,
+      "ai.embedding.generatedAt": new Date(),
+      embeddingStatus:            "resolved",
     });
 
-    console.error(`Pipeline: extraction failed for item ${itemId} —`, err.message);
+    console.log(`Pipeline: embedded item ${itemId} (${vector.length} dims)`);
+
+  } catch (err) {
+    await Item.findByIdAndUpdate(itemId, { embeddingStatus: "failed" });
+    console.error(`Pipeline: embedding failed for item ${itemId} —`, err.message);
   }
 }
 
