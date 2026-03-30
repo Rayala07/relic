@@ -27,7 +27,7 @@ async function getEmbedder() {
     // 'feature-extraction' = turn text into a vector
     // 'Xenova/all-MiniLM-L6-v2' = the model to use (384 dimensions)
     // Downloads ~80MB on first run, reads from disk cache every run after
-    embedder = await pipeline("feature-extraction", "Xenova/all-MiniLM-L6-v2");
+    embedder = await pipeline("feature-extraction", "Xenova/multi-qa-MiniLM-L6-cos-v1");
   }
   return embedder;
 }
@@ -59,6 +59,6 @@ export async function generateEmbedding(content) {
 
   return {
     vector: Array.from(output.data), // convert typed array → plain JS array for MongoDB
-    model: "all-MiniLM-L6-v2",
+    model: "multi-qa-MiniLM-L6-cos-v1",
   };
 }

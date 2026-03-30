@@ -87,23 +87,41 @@ export async function extractPdf(url) {
 }
 
 // ── YouTube extractor ────────────────────────────────────────────────────────
-// Fetches the auto-generated or human-uploaded transcript for the video.
-// Video ID is extracted from both URL formats:
-//   - youtube.com/watch?v=VIDEO_ID
-//   - youtu.be/VIDEO_ID
+// Primary: fetches the auto-generated or human-uploaded transcript.
+// Fallback: YouTube OEmbed API (always works, gives title + author at minimum).
+// Some videos have transcripts disabled — we should never reject the whole item
+// just because a transcript isn't available.
 export async function extractYoutube(url) {
   const parsed  = new URL(url);
   const videoId =
-    parsed.searchParams.get("v") ||           // youtube.com/watch?v=xxx
-    parsed.pathname.split("/").pop();          // youtu.be/xxx
+    parsed.searchParams.get("v") ||   // youtube.com/watch?v=xxx
+    parsed.pathname.split("/").pop();  // youtu.be/xxx
 
-  const segments  = await YoutubeTranscript.fetchTranscript(videoId);
-  const body      = segments.map((s) => s.text).join(" ");
+  // Always fetch OEmbed — gives us reliable title + author regardless of transcript
+  let oembedTitle  = `YouTube video (${videoId})`;
+  let oembedAuthor = "";
+  try {
+    const oembedUrl = `https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`;
+    const { data }  = await http.get(oembedUrl);
+    oembedTitle  = data.title       || oembedTitle;
+    oembedAuthor = data.author_name || "";
+  } catch {
+    // OEmbed failed (private/deleted video) — continue with defaults
+  }
 
-  return normalise({
-    title: `YouTube video (${videoId})`,
-    body,
-  });
+  // Attempt transcript — this is the rich content that powers search
+  try {
+    const segments = await YoutubeTranscript.fetchTranscript(videoId);
+    const body     = segments.map((s) => s.text).join(" ");
+
+    return normalise({ title: oembedTitle, body, author: oembedAuthor });
+
+  } catch {
+    // Transcript unavailable (disabled, private, no captions) — not an error.
+    // Return what we have from OEmbed so the item is still saved and useful.
+    console.log(`Pipeline: no transcript for YouTube video ${videoId} — using metadata only`);
+    return normalise({ title: oembedTitle, author: oembedAuthor });
+  }
 }
 
 // ── Twitter / X extractor ─────────────────────────────────────────────────────
