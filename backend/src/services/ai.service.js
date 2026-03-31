@@ -9,26 +9,22 @@ import axios from "axios";
  * consistency and easy model swapping later.
  *
  * Current capabilities:
- *   - describeImage()       → uses Gemini 1.5 Flash vision to describe an image
- *   - translateToEnglish()  → translates non-English content to English
+ *   - describeImage() → uses Gemini 1.5 Flash vision to describe an image
+ *                        and extract searchable tags from it
  *
  * Future home for:
- *   - summarise()           → text summarisation
- *   - extractTags()         → tag generation for webpages, PDFs, etc.
+ *   - generateEmbedding() → vector embeddings for semantic search
+ *   - summarise()         → text summarisation
+ *   - extractTags()       → tag generation for webpages, PDFs, etc.
  */
 
-// ── Vision model (image input) ───────────────────────────────────────────────
+// ── Model setup ──────────────────────────────────────────────────────────────
+// ChatGoogleGenerativeAI is LangChain's wrapper for Gemini models.
+// It accepts both text and image inputs in the same message.
 const visionModel = new ChatGoogleGenerativeAI({
-  model: "gemini-1.5-flash-latest",
+  model: "gemini-1.5-flash",
   apiKey: process.env.GEMINI_API_KEY,
-  temperature: 0.2,
-});
-
-// ── Text model (text-only tasks: translation, summarisation, etc.) ────────────
-const textModel = new ChatGoogleGenerativeAI({
-  model: "gemini-1.5-flash-latest",
-  apiKey: process.env.GEMINI_API_KEY,
-  temperature: 0, // zero temp = deterministic output, important for translation
+  temperature: 0.2, // low temperature = more consistent, factual descriptions
 });
 
 /**
@@ -96,38 +92,5 @@ Return only the JSON. No markdown fences, no explanation.`,
   return {
     title: parsed.title       || "",
     body:  parsed.description || "",
-  };
-}
-/**
- * Translates non-English content fields to English using Gemini.
- * Uses @google/generative-ai directly (not LangChain) for model compatibility.
- *
- * @param {{ title: string, body: string, excerpt: string }} content
- * @returns {Promise<{ title: string, body: string, excerpt: string }>}
- */
-export async function translateToEnglish({ title = "", body = "", excerpt = "" }) {
-  const { GoogleGenerativeAI } = await import("@google/generative-ai");
-  const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-  const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-  // Cap body at 800 words — keeps the Gemini call fast and within free-tier limits
-  const bodySlice = body.split(" ").slice(0, 800).join(" ");
-
-  const prompt = `Translate the following JSON content to English.
-Return ONLY valid JSON with the exact same field names.
-If a field is already in English, keep it unchanged.
-Do not add any explanation or markdown.
-
-${JSON.stringify({ title, excerpt, body: bodySlice })}`;
-
-  const result  = await model.generateContent(prompt);
-  const raw     = result.response.text().trim();
-  const cleaned = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
-  const parsed  = JSON.parse(cleaned);
-
-  return {
-    title:   parsed.title   || title,
-    excerpt: parsed.excerpt || excerpt,
-    body:    parsed.body    || body,
   };
 }

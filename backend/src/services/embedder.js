@@ -1,64 +1,36 @@
-import { pipeline } from "@xenova/transformers";
-import { buildEmbeddingInput } from "../utils/buildEmbeddingInput.js";
+import { Mistral } from "@mistralai/mistralai";
+
+// Mistral client — initialised once and reused across all calls.
+const mistral = new Mistral({ apiKey: process.env.MISTRAL_API_KEY });
 
 /**
- * embedder.js
+ * Embeds an array of text chunks in a single API call.
+ * Used during indexing — all chunks for one document go in one request.
  *
- * Loads MiniLM locally and generates a 384-dimension vector from item content.
- *
- * WHY local instead of an API?
- *   No cost per call, no network latency to a third party, no API key needed.
- *   The model (~80MB) downloads once on first use and is cached to disk.
- *
- * HOW the singleton (embedder) pattern works:
- *   The model takes ~3-5 seconds to initialise. We load it once into the
- *   `embedder` variable and reuse it for every subsequent call.
- *   After warmup, each embedding takes ~50-200ms.
+ * @param {string[]} chunks - Array of text strings to embed
+ * @returns {Promise<number[][]>} - Array of 1024-dim vectors, same order as input
  */
+export async function embedChunks(chunks) {
+  const response = await mistral.embeddings.create({
+    model: "mistral-embed",
+    inputs: chunks,
+  });
 
-let embedder = null; // loaded once, shared across all calls
-
-/**
- * Lazily loads the MiniLM model. Returns the cached instance on repeat calls.
- * @returns {Promise<Function>} - The ready-to-use HuggingFace pipeline
- */
-async function getEmbedder() {
-  if (!embedder) {
-    // 'feature-extraction' = turn text into a vector
-    // 'Xenova/all-MiniLM-L6-v2' = the model to use (384 dimensions)
-    // Downloads ~80MB on first run, reads from disk cache every run after
-    embedder = await pipeline("feature-extraction", "Xenova/multi-qa-MiniLM-L6-cos-v1");
-  }
-  return embedder;
+  // response.data is ordered the same as the input array
+  return response.data.map((item) => item.embedding);
 }
 
 /**
- * Generates a 384-dimension embedding vector from item content.
- * Uses buildEmbeddingInput to cap input at ~500 words before sending to model.
+ * Embeds a single string. Used for embedding a search query at query time.
  *
- * @param {Object} content - item.content object { title, body, author, excerpt }
- * @returns {Promise<{ vector: number[], model: string }>}
+ * @param {string} text - The search query string
+ * @returns {Promise<number[]>} - Single 1024-dim vector
  */
-export async function generateEmbedding(content) {
-  // Build the structured, capped input string — never sends the full body
-  const input = buildEmbeddingInput(content);
-
-  if (!input.trim()) {
-    throw new Error("No content to embed — all fields are empty");
-  }
-
-  const model = await getEmbedder();
-
-  // Run the model locally
-  // pooling: "mean"  → averages all token vectors into a single vector
-  // normalize: true  → scales to [-1, 1], required for cosine similarity math
-  const output = await model(input, {
-    pooling: "mean",
-    normalize: true,
+export async function embedQuery(text) {
+  const response = await mistral.embeddings.create({
+    model: "mistral-embed",
+    inputs: [text],
   });
 
-  return {
-    vector: Array.from(output.data), // convert typed array → plain JS array for MongoDB
-    model: "multi-qa-MiniLM-L6-cos-v1",
-  };
+  return response.data[0].embedding;
 }

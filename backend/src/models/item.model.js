@@ -2,10 +2,8 @@ import mongoose from "mongoose";
 
 /**
  * Item Schema
- *
- * Each item is scoped to a single user via the `user` field (ObjectId ref).
- * Storing the user reference directly on the item is what allows us to
- * filter by owner on every query — preventing any cross-user data leakage.
+ * Each item is scoped to a user via the `user` field.
+ * Vectors are stored in Pinecone — only metadata is stored here.
  */
 const itemSchema = new mongoose.Schema(
   {
@@ -23,44 +21,52 @@ const itemSchema = new mongoose.Schema(
       trim: true,
     },
 
-    /** Category / content type (e.g. "article", "video", "repo") */
+    /** Content type auto-detected from the URL (webpage, pdf, youtube, tweet, image) */
     type: {
       type: String,
-      required: [true, "Type is required"],
       default: "unknown",
       trim: true,
     },
 
     /**
-     * Extracted content — filled asynchronously by the extraction pipeline.
-     * All fields default to empty so the item can be created instantly
-     * before extraction runs in the background.
+     * Extracted and translated content — populated asynchronously by the pipeline.
+     * All fields default to empty so the item is immediately usable after creation.
      */
     content: {
-      title: { type: String, default: "" }, // extracted title (may differ from item title)
-      body: { type: String, default: "" }, // clean plain text — the main extracted content
-      author: { type: String, default: "" }, // byline / channel name / tweet author
-      excerpt: { type: String, default: "" }, // first ~300 chars for UI previews
-      wordCount: { type: Number, default: 0 }, // body.split(" ").length
+      title:            { type: String, default: "" }, // extracted page/video title
+      body:             { type: String, default: "" }, // clean plain text, translated to English
+      author:           { type: String, default: "" }, // byline, channel name, or tweet author
+      excerpt:          { type: String, default: "" }, // first ~300 chars for UI previews
+      originalLanguage: { type: String, default: "" }, // ISO 639-3 code — "eng" if already English
+      wordCount:        { type: Number, default: 0  }, // word count of translated body
     },
 
+    /** Set by the pipeline after URL extraction completes */
     extractionStatus: {
       type: String,
       enum: ["pending", "resolved", "rejected"],
       default: "pending",
     },
+
+    /**
+     * Embedding metadata — vectors themselves live in Pinecone, not here.
+     * This block tracks which model was used and when.
+     */
     ai: {
       embedding: {
-        vector: { type: [Number], default: [] },
-        model: { type: String, default: "" },
+        model:       { type: String, default: "" },
         generatedAt: { type: Date },
       },
     },
+
+    /** Set by the pipeline after chunks are upserted to Pinecone */
     embeddingStatus: {
       type: String,
       enum: ["pending", "resolved", "failed"],
       default: "pending",
     },
+
+    /** Owner of this item — sourced from JWT, never from client input */
     user: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "User",
@@ -69,7 +75,7 @@ const itemSchema = new mongoose.Schema(
   },
   {
     timestamps: true,
-  },
+  }
 );
 
 const Item = mongoose.model("Item", itemSchema);

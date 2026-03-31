@@ -13,9 +13,7 @@ import { semanticSearch } from "../services/search.service.js";
  * @param {import('express').Response} res
  */
 export const searchItems = async (req, res) => {
-  const query     = req.query.q?.trim();
-  const limit     = parseInt(req.query.limit)     || 10;
-  const threshold = parseFloat(req.query.threshold) || 0.1;
+  const query = req.query.q?.trim();
 
   if (!query) {
     return res.status(400).json({
@@ -25,7 +23,10 @@ export const searchItems = async (req, res) => {
   }
 
   try {
-    const results = await semanticSearch(query, req.userId, { limit, threshold });
+    const results = await semanticSearch(query, req.userId, {
+      limit: 10,
+      threshold: 0.3,
+    });
 
     return res.status(200).json({
       success: true,

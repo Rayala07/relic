@@ -1,39 +1,22 @@
 import Item from "../models/item.model.js";
 import { extract } from "./extract.js";
-import { generateEmbedding } from "./embedder.js";
-import { translateToEnglish } from "./ai.service.js";
+import { translateToEnglish } from "./translator.js";
+import { chunkText } from "./chunker.js";
+import { embedChunks } from "./embedder.js";
+import { upsertChunks } from "./pinecone.js";
 
 /**
- * Returns true if text is likely non-English.
- * Checks if more than 15% of characters are outside standard ASCII range.
- * Catches Hindi, Arabic, Chinese, Japanese, Korean, etc.
- * Latin-script languages (French, German, Spanish) are close enough to
- * English in the embedding space that they don't need translation.
+ * Runs the full content processing pipeline for a saved item.
+ * Triggered as a fire-and-forget job after the HTTP response is sent.
+ * Failures at any stage are caught individually to avoid cascading errors.
  *
- * @param {string} text
- * @returns {boolean}
- */
-function isNonEnglish(text) {
-  if (!text || text.length < 100) return false;
-  const nonAsciiCount = [...text].filter((c) => c.charCodeAt(0) > 127).length;
-  return nonAsciiCount / text.length > 0.15;
-}
-
-/**
- * pipeline.js — The Orchestrator
+ * Stages:
+ *   1. Fetch item from MongoDB
+ *   2. Extract content from the URL
+ *   3. Translate content to English (no-op if already English)
+ *   4. Chunk + embed + upsert to Pinecone
  *
- * Background job that runs AFTER the HTTP response is sent (fire-and-forget).
- * Never awaited by the controller — errors are caught and logged here.
- *
- * 4 stages, each independent:
- *   Stage 1 — Fetch item from DB
- *   Stage 2 — Extract content from URL (webpage/pdf/youtube/tweet/image)
- *   Stage 3 — Save extracted content → extractionStatus: "resolved"
- *   Stage 4 — Generate embedding   → embeddingStatus:  "resolved"
- *
- * Stage isolation — if Stage 4 fails, Stage 3 data is already safely saved.
- * extractionStatus stays "resolved" — only embeddingStatus turns "failed".
- * This prevents a MiniLM crash from making an item appear completely broken.
+ * @param {string} itemId - MongoDB _id of the item to process
  */
 async function extractionPipeline(itemId) {
   // ── Stage 1: Fetch item ────────────────────────────────────────────────────
@@ -44,59 +27,66 @@ async function extractionPipeline(itemId) {
     return;
   }
 
-  // ── Stage 2 & 3: Extract + save content ───────────────────────────────────
-  let content;
+  // ── Stage 2: Extract content from URL ─────────────────────────────────────
+  let translatedContent;
 
   try {
-    const result = await extract(item.url);
-    content = result.content;
+    const { content } = await extract(item.url);
 
-    // Stage 3a: Translate if non-English
-    // Check the body — if it contains mostly non-ASCII characters it's
-    // a non-Latin script (Hindi, Arabic, Chinese...). Translate before saving
-    // so all downstream features (search, embeddings) work in English.
-    if (isNonEnglish(content.body)) {
-      console.log(`Pipeline: translating non-English content for item ${itemId}`);
-      const translated = await translateToEnglish(content);
-      content = { ...content, ...translated };
-    }
-
-    // User title takes priority — only use extracted title if user gave none
+    // User-provided title takes priority — only fall back to extracted title if user gave none
     const finalTitle = item.title || content.title;
+
+    // ── Stage 3: Translate to English ──────────────────────────────────────
+    // No-op if content is already English — franc detects and skips automatically
+    translatedContent = await translateToEnglish(content);
 
     await Item.findByIdAndUpdate(itemId, {
       title: finalTitle,
       content: {
-        title:     content.title,
-        body:      content.body,
-        author:    content.author,
-        excerpt:   content.excerpt,
-        wordCount: content.body ? content.body.split(" ").filter(Boolean).length : 0,
+        title:            translatedContent.title,
+        body:             translatedContent.body,
+        author:           translatedContent.author,
+        excerpt:          translatedContent.excerpt,
+        originalLanguage: translatedContent.originalLanguage,
+        wordCount:        translatedContent.body
+                            ? translatedContent.body.split(" ").filter(Boolean).length
+                            : 0,
       },
       extractionStatus: "resolved",
     });
 
-    console.log(`Pipeline: extracted "${content.title}" for item ${itemId}`);
+    console.log(`Pipeline: extracted + translated "${translatedContent.title}" for item ${itemId}`);
 
   } catch (err) {
     await Item.findByIdAndUpdate(itemId, { extractionStatus: "rejected" });
-    console.error(`Pipeline: extraction failed for item ${itemId} —`, err.stack || err.message);
+    console.error(`Pipeline: extraction failed for item ${itemId} —`, err.message);
     return; // no point continuing to embedding if extraction failed
   }
 
-  // ── Stage 4: Generate embedding ────────────────────────────────────────────
-  // Runs independently — a failure here does NOT affect extractionStatus.
+  // ── Stage 4: Chunk → Embed → Upsert to Pinecone ────────────────────────────
+  // Isolated in its own try/catch — a failure here does not affect extractionStatus.
   try {
-    const { vector, model } = await generateEmbedding(content);
+    const chunks  = await chunkText(translatedContent.body);
+
+    if (chunks.length === 0) {
+      console.log(`Pipeline: no chunks for item ${itemId} — skipping embedding`);
+      await Item.findByIdAndUpdate(itemId, { embeddingStatus: "resolved" });
+      return;
+    }
+
+    // One Mistral API call for all chunks — batch input, batch output
+    const vectors = await embedChunks(chunks);
+
+    // Store chunk vectors in Pinecone with mongoId + userId for retrieval and user scoping
+    await upsertChunks(itemId, item.user, chunks, vectors);
 
     await Item.findByIdAndUpdate(itemId, {
-      "ai.embedding.vector":      vector,
-      "ai.embedding.model":       model,
+      "ai.embedding.model":       "mistral-embed",
       "ai.embedding.generatedAt": new Date(),
       embeddingStatus:            "resolved",
     });
 
-    console.log(`Pipeline: embedded item ${itemId} (${vector.length} dims)`);
+    console.log(`Pipeline: upserted ${chunks.length} chunks for item ${itemId}`);
 
   } catch (err) {
     await Item.findByIdAndUpdate(itemId, { embeddingStatus: "failed" });
