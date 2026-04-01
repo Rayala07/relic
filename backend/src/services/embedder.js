@@ -16,8 +16,9 @@ export async function embedChunks(chunks) {
     inputs: chunks,
   });
 
-  // response.data is ordered the same as the input array
-  return response.data.map((item) => item.embedding);
+  // Array.from() ensures a plain JS Array — some Mistral SDK versions return
+  // typed arrays (Float64Array) which Pinecone's validation rejects.
+  return response.data.map((item) => Array.from(item.embedding));
 }
 
 /**

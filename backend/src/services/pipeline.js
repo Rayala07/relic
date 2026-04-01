@@ -86,7 +86,15 @@ async function extractionPipeline(itemId) {
     // One Mistral API call for all chunks — batch input, batch output
     const vectors = await embedChunks(chunks);
 
-    // Store chunk vectors in Pinecone with mongoId + userId for retrieval and user scoping
+    // Guard: Mistral should return one vector per chunk — if not, something went
+    // wrong in the embedding response and we should not attempt to upsert.
+    if (!vectors || vectors.length !== chunks.length) {
+      console.warn(`Pipeline: vector count mismatch for item ${itemId} — expected ${chunks.length}, got ${vectors?.length ?? 0}. Skipping upsert.`);
+      await Item.findByIdAndUpdate(itemId, { embeddingStatus: "failed" });
+      return;
+    }
+
+    // Store chunk vectors in Pinecone — scoped to user's namespace
     await upsertChunks(itemId, item.user, chunks, vectors);
 
     await Item.findByIdAndUpdate(itemId, {

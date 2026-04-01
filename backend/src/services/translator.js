@@ -113,7 +113,7 @@ async function translateLargeText(text) {
  * @returns {Promise<{ title: string, body: string, author: string, excerpt: string, originalLanguage: string }>}
  */
 export async function translateToEnglish(content) {
-  const { body, title } = content;
+  const { body, title, author } = content;
 
   // First 500 chars is enough for franc to reliably detect the language
   const sample = body?.slice(0, 500) || title || "";
@@ -126,17 +126,27 @@ export async function translateToEnglish(content) {
 
   console.log(`Translator: detected "${langCode}", translating to English...`);
 
-  // Title is always short — direct call is fine.
-  // Body can be a full webpage (50k+ chars) — use chunked translation.
-  const [translatedTitle, translatedBody] = await Promise.all([
-    title ? translateText(title)      : Promise.resolve(""),
-    body  ? translateLargeText(body)  : Promise.resolve(""),
+  // title and author are always short  — direct call is fine.
+  // body can be a full webpage (50k+ chars) — use chunked translation.
+  const [translatedTitle, translatedBody, translatedAuthor] = await Promise.all([
+    title  ? translateText(title)      : Promise.resolve(""),
+    body   ? translateLargeText(body)  : Promise.resolve(""),
+    author ? translateText(author)     : Promise.resolve(""),
   ]);
+
+  // Derive excerpt from the translated body — no extra API call needed.
+  // Excerpt is just a short preview slice, so regenerating it from the
+  // translated body is always more correct than translating the original.
+  const translatedExcerpt = translatedBody
+    ? translatedBody.replace(/\s+/g, " ").trim().slice(0, 300)
+    : "";
 
   return {
     ...content,
-    title: translatedTitle || content.title,
-    body:  translatedBody  || content.body,
+    title:           translatedTitle  || content.title,
+    body:            translatedBody   || content.body,
+    author:          translatedAuthor || content.author,
+    excerpt:         translatedExcerpt || content.excerpt,
     originalLanguage: langCode,
   };
 }

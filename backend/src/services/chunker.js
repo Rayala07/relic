@@ -22,6 +22,6 @@ export async function chunkText(text) {
 
   const chunks = await splitter.splitText(text);
 
-  // Drop chunks too short to carry semantic meaning
-  return chunks.filter((c) => c.trim().split(/\s+/).length > 15);
+  // Drop chunks too short to carry semantic meaning (< 5 words)
+  return chunks.filter((c) => c.trim().split(/\s+/).length > 5);
 }

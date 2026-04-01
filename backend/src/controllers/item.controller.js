@@ -1,6 +1,7 @@
 import Item from "../models/item.model.js";
 import detectType from "../utils/detectType.js";
 import extractionPipeline from "../services/pipeline.js";
+import { deleteChunks } from "../services/pinecone.js";
 
 /**
  * Create Item Controller
@@ -150,6 +151,12 @@ export const deleteItem = async (req, res) => {
     }
 
     await item.deleteOne();
+
+    // Clean up Pinecone vectors — fire-and-forget so the HTTP response
+    // isn't delayed. If this fails it only leaves orphaned vectors (no data leak).
+    deleteChunks(item._id).catch((err) =>
+      console.error(`Pinecone cleanup failed for item ${item._id}:`, err.message)
+    );
 
     return res
       .status(200)
