@@ -15,7 +15,7 @@ import { searchChunks } from "./pinecone.js";
  * @returns {Promise<Array>} - Ranked list of matching items with similarity scores
  */
 export async function semanticSearch(query, userId, options = {}) {
-  const { limit = 10, threshold = 0.3 } = options;
+  const { limit = 10, threshold = 0.75 } = options;
 
   // Step 1: Embed the query using the same model used for indexing
   const queryVector = await embedQuery(query);

@@ -48,6 +48,12 @@ const itemSchema = new mongoose.Schema(
       default: "pending",
     },
 
+    /** Why extraction was rejected — only set when extractionStatus is "rejected" */
+    extractionRejectedReason: {
+      type: String,
+      enum: ["geo_blocked", "bot_protected", "not_found", "fetch_error"],
+    },
+
     /**
      * Embedding metadata — vectors themselves live in Pinecone, not here.
      * This block tracks which model was used and when.

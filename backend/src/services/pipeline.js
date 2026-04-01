@@ -58,9 +58,18 @@ async function extractionPipeline(itemId) {
     console.log(`Pipeline: extracted + translated "${translatedContent.title}" for item ${itemId}`);
 
   } catch (err) {
-    await Item.findByIdAndUpdate(itemId, { extractionStatus: "rejected" });
-    console.error(`Pipeline: extraction failed for item ${itemId} —`, err.message);
-    return; // no point continuing to embedding if extraction failed
+    const status = err.response?.status;
+    const reason = status === 451 ? "geo_blocked"
+                 : status === 403 ? "bot_protected"
+                 : status === 404 ? "not_found"
+                 : "fetch_error";
+
+    await Item.findByIdAndUpdate(itemId, {
+      extractionStatus:       "rejected",
+      extractionRejectedReason: reason,
+    });
+    console.error(`Pipeline: extraction failed for item ${itemId} [${reason}] —`, err.message);
+    return;
   }
 
   // ── Stage 4: Chunk → Embed → Upsert to Pinecone ────────────────────────────

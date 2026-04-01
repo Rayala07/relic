@@ -25,7 +25,7 @@ export const searchItems = async (req, res) => {
   try {
     const results = await semanticSearch(query, req.userId, {
       limit: 10,
-      threshold: 0.3,
+      threshold: 0.75,
     });
 
     return res.status(200).json({
