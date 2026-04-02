@@ -1,7 +1,7 @@
 import Item from "../models/item.model.js";
 import detectType from "../utils/detectType.js";
-import extractionPipeline from "../services/pipeline.js";
-import { deleteChunks } from "../services/pinecone.js";
+import extractionPipeline from "../utils/pipeline.js";
+import { deleteChunks } from "../utils/pinecone.js";
 
 /**
  * Create Item Controller

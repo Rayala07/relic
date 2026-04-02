@@ -1,4 +1,4 @@
-import detectType from "../utils/detectType.js";
+import detectType from "./detectType.js";
 import {
   extractWebpage,
   extractPdf,
@@ -25,11 +25,11 @@ import {
 // ── Lookup table: type string → extractor function ───────────────────────────
 const extractors = {
   webpage: extractWebpage,
-  repo:    extractWebpage,   // GitHub repos are webpages — same extractor
-  pdf:     extractPdf,
+  repo: extractWebpage, // GitHub repos are webpages — same extractor
+  pdf: extractPdf,
   youtube: extractYoutube,
-  tweet:   extractTwitter,
-  image:   extractImage,     // Gemini 1.5 Flash vision → description + tags
+  tweet: extractTwitter,
+  image: extractImage, // Gemini 1.5 Flash vision → description + tags
 };
 
 /**
@@ -40,8 +40,8 @@ const extractors = {
  * @returns {{ type: string, content: { title: string, body: string, author: string, excerpt: string } }}
  */
 async function extract(url) {
-  const type = detectType(url);    // "webpage" | "pdf" | "youtube" | "tweet" | "repo" | "image"
-  const fn   = extractors[type];   // pick the matching extractor function
+  const type = detectType(url); // "webpage" | "pdf" | "youtube" | "tweet" | "repo" | "image"
+  const fn = extractors[type]; // pick the matching extractor function
 
   // Images have no extractable text — return empty content without erroring
   if (!fn) {
@@ -51,7 +51,7 @@ async function extract(url) {
     };
   }
 
-  const content = await fn(url);   // run the extractor → { title, body, author, excerpt }
+  const content = await fn(url); // run the extractor → { title, body, author, excerpt }
   return { type, content };
 }
 

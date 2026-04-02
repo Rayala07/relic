@@ -4,6 +4,7 @@ import { translateToEnglish } from "./translator.js";
 import { chunkText } from "./chunker.js";
 import { embedChunks } from "./embedder.js";
 import { upsertChunks } from "./pinecone.js";
+import { generateSummary } from "./summariser.js";
 
 /**
  * Runs the full content processing pipeline for a saved item.
@@ -43,53 +44,68 @@ async function extractionPipeline(itemId) {
     await Item.findByIdAndUpdate(itemId, {
       title: finalTitle,
       content: {
-        title:            translatedContent.title,
-        body:             translatedContent.body,
-        author:           translatedContent.author,
-        excerpt:          translatedContent.excerpt,
+        title: translatedContent.title,
+        body: translatedContent.body,
+        author: translatedContent.author,
+        excerpt: translatedContent.excerpt,
         originalLanguage: translatedContent.originalLanguage,
-        wordCount:        translatedContent.body
-                            ? translatedContent.body.split(" ").filter(Boolean).length
-                            : 0,
+        wordCount: translatedContent.body
+          ? translatedContent.body.split(" ").filter(Boolean).length
+          : 0,
       },
       extractionStatus: "resolved",
     });
 
-    console.log(`Pipeline: extracted + translated "${translatedContent.title}" for item ${itemId}`);
-
+    console.log(
+      `Pipeline: extracted + translated "${translatedContent.title}" for item ${itemId}`,
+    );
   } catch (err) {
     const status = err.response?.status;
-    const reason = status === 451 ? "geo_blocked"
-                 : status === 403 ? "bot_protected"
-                 : status === 404 ? "not_found"
-                 : "fetch_error";
+    const reason =
+      status === 451
+        ? "geo_blocked"
+        : status === 403
+          ? "bot_protected"
+          : status === 404
+            ? "not_found"
+            : "fetch_error";
 
     await Item.findByIdAndUpdate(itemId, {
-      extractionStatus:       "rejected",
+      extractionStatus: "rejected",
       extractionRejectedReason: reason,
     });
-    console.error(`Pipeline: extraction failed for item ${itemId} [${reason}] —`, err.message);
+    console.error(
+      `Pipeline: extraction failed for item ${itemId} [${reason}] —`,
+      err.message,
+    );
     return;
   }
 
   // ── Stage 4: Chunk → Embed → Upsert to Pinecone ────────────────────────────
   // Isolated in its own try/catch — a failure here does not affect extractionStatus.
   try {
-    const chunks  = await chunkText(translatedContent.body);
+    const chunks = await chunkText(translatedContent.body);
 
     if (chunks.length === 0) {
-      console.log(`Pipeline: no chunks for item ${itemId} — skipping embedding`);
+      console.log(
+        `Pipeline: no chunks for item ${itemId} — skipping embedding`,
+      );
       await Item.findByIdAndUpdate(itemId, { embeddingStatus: "resolved" });
       return;
     }
 
-    // One Mistral API call for all chunks — batch input, batch output
-    const vectors = await embedChunks(chunks);
+    // Run embed and summarise in parallel — no dependency between them
+    const [vectors, summary] = await Promise.all([
+      embedChunks(chunks),
+      generateSummary(translatedContent.body),
+    ]);
 
     // Guard: Mistral should return one vector per chunk — if not, something went
     // wrong in the embedding response and we should not attempt to upsert.
     if (!vectors || vectors.length !== chunks.length) {
-      console.warn(`Pipeline: vector count mismatch for item ${itemId} — expected ${chunks.length}, got ${vectors?.length ?? 0}. Skipping upsert.`);
+      console.warn(
+        `Pipeline: vector count mismatch for item ${itemId} — expected ${chunks.length}, got ${vectors?.length ?? 0}. Skipping upsert.`,
+      );
       await Item.findByIdAndUpdate(itemId, { embeddingStatus: "failed" });
       return;
     }
@@ -98,16 +114,21 @@ async function extractionPipeline(itemId) {
     await upsertChunks(itemId, item.user, chunks, vectors);
 
     await Item.findByIdAndUpdate(itemId, {
-      "ai.embedding.model":       "mistral-embed",
+      "ai.embedding.model": "mistral-embed",
       "ai.embedding.generatedAt": new Date(),
-      embeddingStatus:            "resolved",
+      "ai.summary": summary,
+      embeddingStatus: "resolved",
     });
 
-    console.log(`Pipeline: upserted ${chunks.length} chunks for item ${itemId}`);
-
+    console.log(
+      `Pipeline: upserted ${chunks.length} chunks for item ${itemId}`,
+    );
   } catch (err) {
     await Item.findByIdAndUpdate(itemId, { embeddingStatus: "failed" });
-    console.error(`Pipeline: embedding failed for item ${itemId} —`, err.message);
+    console.error(
+      `Pipeline: embedding failed for item ${itemId} —`,
+      err.message,
+    );
   }
 }
 

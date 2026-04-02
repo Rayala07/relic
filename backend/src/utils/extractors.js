@@ -1,7 +1,7 @@
 import axios from "axios";
 import { JSDOM } from "jsdom";
 import { Readability } from "@mozilla/readability";
-import { describeImage } from "./ai.service.js";
+import { describeImage } from "../services/ai.service.js";
 import { YoutubeTranscript } from "youtube-transcript/dist/youtube-transcript.esm.js";
 
 // Import CJS module correctly in ESM

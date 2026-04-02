@@ -1,6 +1,6 @@
 import Item from "../models/item.model.js";
-import { embedQuery } from "./embedder.js";
-import { searchChunks } from "./pinecone.js";
+import { embedQuery } from "../utils/embedder.js";
+import { searchChunks } from "../utils/pinecone.js";
 
 /**
  * Performs semantic search over a user's saved items using Pinecone.
