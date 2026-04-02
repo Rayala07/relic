@@ -5,8 +5,8 @@ import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 const groq = new ChatGroq({
   model: "llama-3.1-8b-instant",
   apiKey: process.env.GROQ_API_KEY,
-  temperature: 0.3,   // low temp = consistent, focused output
-  maxTokens: 120,     // expansion doesn't need more than this
+  temperature: 0.1,   // lower = more deterministic, less drift
+  maxTokens: 80,      // 6 tight terms don't need more
 });
 
 /**
@@ -24,14 +24,20 @@ export async function expandQuery(query) {
   try {
     const response = await groq.invoke([
       new SystemMessage(
-        `You expand short search queries into richer search terms. ` +
-        `Return ONLY a comma-separated list of related terms and concepts. ` +
-        `No explanation. No sentences. No markdown. No bullet points. ` +
-        `Just terms separated by commas.\n` +
-        `Example input: "backend"\n` +
-        `Example output: "backend development, REST APIs, server-side programming, Node.js, Express, databases, authentication, microservices"`
+        `You are a search query expander. Your job is to expand a short query into closely related specific terms.\n\n` +
+        `STRICT RULES:\n` +
+        `- Stay very close to the original topic\n` +
+        `- Only add terms that are DIRECTLY related — not loosely related\n` +
+        `- Do NOT add generic words like: strategy, goals, planning, tips, guide, tutorial, learn, understand, overview\n` +
+        `- Do NOT add synonyms for common words\n` +
+        `- Return ONLY a comma-separated list of specific technical or topical terms\n` +
+        `- Maximum 6 terms including the original\n` +
+        `- No explanation, no sentences, no markdown\n\n` +
+        `Example: "redis" → "Redis, Redis cache, in-memory database, Redis data structures, Redis pub/sub, Redis cluster"\n` +
+        `Example: "roadmap" → "roadmap, learning path, skill roadmap, developer roadmap, technology roadmap, roadmap.sh"\n` +
+        `Example: "backend" → "backend development, REST API, server-side, Node.js backend, Express.js, database design"`
       ),
-      new HumanMessage(`Expand this search query: "${query}"`),
+      new HumanMessage(`Expand this search query into closely related specific terms only: "${query}"`),
     ]);
 
     const expanded = response.content?.trim();
@@ -39,7 +45,6 @@ export async function expandQuery(query) {
     // Safety check — if something weird came back, use original
     if (!expanded || expanded.length < query.length) return query;
 
-    console.log(`Query expanded: "${query}" → "${expanded}"`);
     return expanded;
 
   } catch (err) {

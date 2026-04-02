@@ -16,11 +16,10 @@ import { expandQuery } from "../utils/queryExpander.js";
  * @returns {Promise<Array>} - Ranked list of matching items with similarity scores
  */
 export async function semanticSearch(query, userId, options = {}) {
-  const { limit = 10, threshold = 0.70 } = options;
+  const { limit = 10, threshold = 0.75 } = options;
 
   // Step 1: Expand the query with Groq, then embed the richer result
   const expandedQuery = await expandQuery(query);
-  console.log("[DEBUG] Expanded query:", expandedQuery); // TODO: remove
   const queryVector = await embedQuery(expandedQuery);
 
   // Step 2: Query Pinecone — results are already user-scoped and deduplicated

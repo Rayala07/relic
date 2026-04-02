@@ -4,10 +4,7 @@ import { Readability } from "@mozilla/readability";
 import { describeImage } from "../services/ai.service.js";
 import { YoutubeTranscript } from "youtube-transcript/dist/youtube-transcript.esm.js";
 
-// Import CJS module correctly in ESM
-import { createRequire } from "module";
-const require = createRequire(import.meta.url);
-const pdfParse = require("pdf-parse");
+import { PDFParse } from "pdf-parse";
 
 /**
  * extractors.js
@@ -139,13 +136,21 @@ export async function extractWebpage(url) {
 // all text content from every page into a single string.
 export async function extractPdf(url) {
   const { data } = await http.get(url, { responseType: "arraybuffer" });
-  const parsed = await pdfParse(Buffer.from(data));
+  
+  const parser = new PDFParse({ data: Buffer.from(data) });
+  
+  try {
+    const textResult = await parser.getText();
+    const infoResult = await parser.getInfo();
 
-  return normalise({
-    // PDF metadata title if present, otherwise use the filename from the URL
-    title: parsed.info?.Title || decodeURIComponent(url.split("/").pop()),
-    body:  parsed.text,
-  });
+    return normalise({
+      // PDF metadata title if present, otherwise use the filename from the URL
+      title: infoResult.info?.Title || decodeURIComponent(url.split("/").pop()),
+      body:  textResult.text,
+    });
+  } finally {
+    await parser.destroy();
+  }
 }
 
 // ── YouTube extractor ────────────────────────────────────────────────────────
