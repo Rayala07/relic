@@ -5,6 +5,7 @@ import { chunkText } from "./chunker.js";
 import { embedChunks } from "./embedder.js";
 import { upsertChunks } from "./pinecone.js";
 import { generateSummary } from "./summariser.js";
+import { generateTags } from "./tagger.js";
 
 /**
  * Runs the full content processing pipeline for a saved item.
@@ -94,10 +95,11 @@ async function extractionPipeline(itemId) {
       return;
     }
 
-    // Run embed and summarise in parallel — no dependency between them
-    const [vectors, summary] = await Promise.all([
+    // Run embed, summarise, and tag in parallel — no dependency between them
+    const [vectors, summary, tags] = await Promise.all([
       embedChunks(chunks),
       generateSummary(translatedContent.body),
+      generateTags(translatedContent.body),
     ]);
 
     // Guard: Mistral should return one vector per chunk — if not, something went
@@ -117,9 +119,11 @@ async function extractionPipeline(itemId) {
       "ai.embedding.model": "mistral-embed",
       "ai.embedding.generatedAt": new Date(),
       "ai.summary": summary,
+      "ai.tags": tags,
       embeddingStatus: "resolved",
     });
 
+    console.log(`Pipeline: tags generated for ${itemId} —`, tags);
     console.log(
       `Pipeline: upserted ${chunks.length} chunks for item ${itemId}`,
     );

@@ -64,6 +64,7 @@ const itemSchema = new mongoose.Schema(
         generatedAt: { type: Date },
       },
       summary: { type: String, default: "" },
+      tags:    { type: [String], default: [] },
     },
 
     /** Set by the pipeline after chunks are upserted to Pinecone */
