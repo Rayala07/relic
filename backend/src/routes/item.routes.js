@@ -4,6 +4,7 @@ import {
   getItems,
   getItemById,
   deleteItem,
+  getRelatedItems,
 } from "../controllers/item.controller.js";
 import { verifyToken } from "../middlewares/auth.middleware.js";
 
@@ -17,6 +18,10 @@ const router = Router();
 
 router.post("/create", verifyToken, createItem);
 router.get("/get", verifyToken, getItems);
+
+// /:id/related MUST be defined before /:id — Express matches top-to-bottom
+// and /:id would greedily consume "related" as the id param if listed first.
+router.get("/get/:id/related", verifyToken, getRelatedItems);
 router.get("/get/:id", verifyToken, getItemById);
 router.delete("/delete/:id", verifyToken, deleteItem);
 

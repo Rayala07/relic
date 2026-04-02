@@ -84,3 +84,70 @@ export async function searchChunks(queryVector, userId, topK = 20) {
 
   return Array.from(seen.values()).sort((a, b) => b.score - a.score);
 }
+
+/**
+ * Fetches all stored chunk vectors for a given item from Pinecone.
+ * Uses list-by-prefix (same pattern as deleteChunks) then fetch by IDs.
+ *
+ * @param {string} mongoId - MongoDB _id of the item
+ * @returns {Promise<number[][]>} - Array of 1024-dim vectors
+ */
+export async function fetchChunkVectors(mongoId) {
+  const listResult = await index.listPaginated({ prefix: `${mongoId}_chunk` });
+  const ids = (listResult.vectors ?? [])
+    .map((v) => v.id)
+    .filter(Boolean);
+
+  if (ids.length === 0) return [];
+
+  const fetchResult = await index.fetch({ ids });
+  return Object.values(fetchResult.records ?? {})
+    .map((r) => r.values)
+    .filter((v) => v && v.length > 0);
+}
+
+/**
+ * Finds items semantically related to the given item using its own chunk vectors.
+ * Queries Pinecone once per chunk, deduplicates by document, excludes self.
+ *
+ * @param {string} mongoId    - MongoDB _id of the source item
+ * @param {number} topK       - Max number of related items to return (default 5)
+ * @param {number} threshold  - Minimum similarity score to include (default 0.75)
+ * @returns {Promise<Array<{ mongoId: string, score: number }>>}
+ */
+export async function findRelatedItems(mongoId, topK = 5, threshold = 0.75) {
+  // Step 1: get this item's own chunk vectors from Pinecone
+  const vectors = await fetchChunkVectors(mongoId);
+  if (vectors.length === 0) return [];
+
+  // Step 2: search using each chunk vector, collect all matches
+  const allMatches = [];
+
+  for (const vector of vectors) {
+    const results = await index.query({
+      vector,
+      topK: 20,
+      includeMetadata: true,
+    });
+    allMatches.push(...(results.matches ?? []));
+  }
+
+  // Step 3: deduplicate by mongoId, exclude the item itself — keep highest score per doc
+  const seen = new Map();
+
+  for (const match of allMatches) {
+    const matchedId = match.metadata?.mongoId;
+    if (!matchedId) continue;
+    if (matchedId === mongoId.toString()) continue; // exclude self
+
+    if (!seen.has(matchedId) || seen.get(matchedId).score < match.score) {
+      seen.set(matchedId, { mongoId: matchedId, score: match.score });
+    }
+  }
+
+  // Step 4: apply threshold, sort by score descending, return top N
+  return Array.from(seen.values())
+    .filter((m) => m.score >= threshold)
+    .sort((a, b) => b.score - a.score)
+    .slice(0, topK);
+}

@@ -1,7 +1,7 @@
 import Item from "../models/item.model.js";
 import detectType from "../utils/detectType.js";
 import extractionPipeline from "../utils/pipeline.js";
-import { deleteChunks } from "../utils/pinecone.js";
+import { deleteChunks, findRelatedItems } from "../utils/pinecone.js";
 
 /**
  * Create Item Controller
@@ -166,5 +166,67 @@ export const deleteItem = async (req, res) => {
     return res
       .status(500)
       .json({ success: false, message: "Internal server error" });
+  }
+};
+
+/**
+ * Get Related Items Controller
+ *
+ * Uses the item's own Pinecone chunk vectors to find semantically
+ * similar items saved by the same user.
+ *
+ * @param {import('express').Request} req
+ * @param {import('express').Response} res
+ */
+export const getRelatedItems = async (req, res) => {
+  const { id } = req.params;
+
+  if (!id.match(/^[a-f\d]{24}$/i)) {
+    return res.status(400).json({ success: false, message: "Invalid item id" });
+  }
+
+  try {
+    // Confirm the item exists and belongs to this user
+    const item = await Item.findOne({ _id: id, user: req.userId }, { _id: 1 }).lean();
+    if (!item) {
+      return res.status(404).json({ success: false, message: "Item not found" });
+    }
+
+    // Find related items via Pinecone vector similarity
+    const matches = await findRelatedItems(id, 5);
+
+    if (matches.length === 0) {
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    // Fetch the actual docs from MongoDB — lightweight projection for a card UI
+    const relatedIds = matches.map((m) => m.mongoId);
+    const docs = await Item.find(
+      { _id: { $in: relatedIds }, user: req.userId },
+      {
+        url:               1,
+        type:              1,
+        "content.title":   1,
+        "content.excerpt": 1,
+        "content.author":  1,
+        "ai.tags":         1,
+        "ai.summary":      1,
+      }
+    ).lean();
+
+    // Attach similarity score and sort best-first
+    const scoreMap = Object.fromEntries(matches.map((m) => [m.mongoId, m.score]));
+    const results = docs
+      .map((doc) => ({
+        ...doc,
+        score: parseFloat(scoreMap[doc._id.toString()].toFixed(4)),
+      }))
+      .sort((a, b) => b.score - a.score);
+
+    return res.json({ success: true, count: results.length, data: results });
+
+  } catch (error) {
+    console.error("GetRelatedItems Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error" });
   }
 };

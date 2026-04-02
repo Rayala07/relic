@@ -6,6 +6,7 @@ import { embedChunks } from "./embedder.js";
 import { upsertChunks } from "./pinecone.js";
 import { generateSummary } from "./summariser.js";
 import { generateTags } from "./tagger.js";
+import { autoOrganizeItem } from "./autoOrganize.js";
 
 /**
  * Runs the full content processing pipeline for a saved item.
@@ -126,6 +127,11 @@ async function extractionPipeline(itemId) {
     console.log(`Pipeline: tags generated for ${itemId} —`, tags);
     console.log(
       `Pipeline: upserted ${chunks.length} chunks for item ${itemId}`,
+    );
+
+    // Fire-and-forget — auto-organize runs after done, never blocks the pipeline
+    autoOrganizeItem(itemId, item.user).catch((err) =>
+      console.error("autoOrganize failed silently:", err.message)
     );
   } catch (err) {
     await Item.findByIdAndUpdate(itemId, { embeddingStatus: "failed" });

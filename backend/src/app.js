@@ -4,6 +4,7 @@ import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.routes.js";
 import itemRoutes from "./routes/item.routes.js";
 import searchRoutes from "./routes/search.routes.js";
+import collectionRoutes from "./routes/collection.routes.js";
 import "dotenv/config";
 
 const app = express();
@@ -21,5 +22,6 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/items", itemRoutes);
 app.use("/api/search", searchRoutes);
+app.use("/api/collections", collectionRoutes);
 
 export default app;
