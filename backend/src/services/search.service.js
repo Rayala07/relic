@@ -1,6 +1,7 @@
 import Item from "../models/item.model.js";
 import { embedQuery } from "../utils/embedder.js";
 import { searchChunks } from "../utils/pinecone.js";
+import { expandQuery } from "../utils/queryExpander.js";
 
 /**
  * Performs semantic search over a user's saved items using Pinecone.
@@ -17,8 +18,10 @@ import { searchChunks } from "../utils/pinecone.js";
 export async function semanticSearch(query, userId, options = {}) {
   const { limit = 10, threshold = 0.70 } = options;
 
-  // Step 1: Embed the query using the same model used for indexing
-  const queryVector = await embedQuery(query);
+  // Step 1: Expand the query with Groq, then embed the richer result
+  const expandedQuery = await expandQuery(query);
+  console.log("[DEBUG] Expanded query:", expandedQuery); // TODO: remove
+  const queryVector = await embedQuery(expandedQuery);
 
   // Step 2: Query Pinecone — results are already user-scoped and deduplicated
   const matches = await searchChunks(queryVector, userId, 20);
