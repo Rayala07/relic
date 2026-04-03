@@ -4,8 +4,13 @@
  * @returns {string} Relative time (e.g. "3d ago")
  */
 export function timeAgo(dateString) {
+  if (!dateString) return "UNKNOWN";
+  
   const now = new Date();
   const date = new Date(dateString);
+
+  if (isNaN(date.getTime())) return "UNKNOWN";
+
   const seconds = Math.floor((now - date) / 1000);
   const minutes = Math.floor(seconds / 60);
   const hours = Math.floor(minutes / 60);

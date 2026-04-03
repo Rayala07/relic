@@ -27,6 +27,10 @@ const itemService = {
   getResurfaced: async () => {
     const response = await apiClient.get(`/resurface`);
     return response.data;
+  },
+  searchItems: async (query) => {
+    const response = await apiClient.get(`/search?q=${encodeURIComponent(query)}`);
+    return response.data;
   }
 };
 

@@ -5,6 +5,7 @@ import SavePage from "../features/items/pages/SavePage";
 import LibraryPage from "../features/items/pages/LibraryPage";
 import ItemDetailPage from "../features/items/pages/ItemDetailPage";
 import Navbar from "./components/Navbar";
+import SearchPage from "../features/items/pages/SearchPage";
 
 import withAuth from "../features/auth/components/withAuth";
 import withGuest from "../features/auth/components/withGuest";
@@ -27,6 +28,7 @@ const LayoutWrapper = () => {
 const ProtectedSave = withAuth(SavePage);
 const ProtectedLibrary = withAuth(LibraryPage);
 const ProtectedItem = withAuth(ItemDetailPage);
+const ProtectedSearch = withAuth(SearchPage);
 const GuestLogin = withGuest(Login);
 const GuestRegister = withGuest(Register);
 
@@ -53,6 +55,10 @@ const routes = createBrowserRouter([
             {
                 path: "/library",
                 element: <ProtectedLibrary />
+            },
+            {
+                path: "/search",
+                element: <ProtectedSearch />
             },
             {
                 path: "/items/:id",
