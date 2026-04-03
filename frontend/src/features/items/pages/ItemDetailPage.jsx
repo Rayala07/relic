@@ -67,7 +67,7 @@ const ItemDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center p-6">
+      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex items-center justify-center p-6">
         <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           LOADING
         </p>
@@ -77,7 +77,7 @@ const ItemDetailPage = () => {
 
   if (error || !item) {
     return (
-      <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center p-6 gap-6">
+      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex flex-col items-center justify-center p-6 gap-6">
         <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           {error || "Item not found"}
         </p>
@@ -105,11 +105,11 @@ const ItemDetailPage = () => {
   const tags = ai.tags || [];
 
   return (
-    <div className="min-h-screen bg-[#000000] flex justify-center px-6 py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
-      <div className="w-full max-w-[900px] flex flex-col lg:flex-row gap-12 lg:gap-24">
+    <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+      <div className="shared-container flex flex-col lg:flex-row gap-[64px] items-start">
         
         {/* LEFT COLUMN: Main Content */}
-        <div className="flex-1 flex flex-col gap-8">
+        <div className="flex-1 flex flex-col gap-8 w-full">
           
           {/* Header Block */}
           <div className="flex flex-col">
@@ -197,7 +197,7 @@ const ItemDetailPage = () => {
         </div>
 
         {/* RIGHT COLUMN: Sidebar */}
-        <div className="w-full lg:w-[260px] flex flex-col gap-6 shrink-0 mt-2 lg:mt-[6.5rem]">
+        <div className="w-full lg:w-[280px] flex flex-col gap-6 shrink-0 lg:sticky lg:top-[96px]">
           <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             RELATED
           </h2>

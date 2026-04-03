@@ -48,7 +48,7 @@ const InputBlock = ({ labelText, prefillUrl = "", onSubmitData, isLoading }) => 
           setLocalUrl(e.target.value);
           setUrlError("");
         }}
-        placeholder="paste a url"
+        placeholder="Attach a URL"
         autoFocus
         disabled={isLoading}
         className="w-full bg-[#0a0a0a] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
@@ -76,7 +76,7 @@ const InputBlock = ({ labelText, prefillUrl = "", onSubmitData, isLoading }) => 
         type="text"
         value={localTitle}
         onChange={(e) => setLocalTitle(e.target.value)}
-        placeholder="title"
+        placeholder="Title"
         disabled={isLoading}
         className="w-full bg-[#0a0a0a] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
         style={{
@@ -132,7 +132,7 @@ const SavePage = () => {
 
   return (
     <div
-      className="min-h-screen bg-[#000000] flex items-center justify-center px-6"
+      className="min-h-[calc(100vh-72px)] bg-[#000000] flex items-center justify-center px-6"
       style={{ fontFamily: "system-ui, sans-serif" }}
     >
       <div className="w-full" style={{ maxWidth: "480px" }}>

@@ -7,3 +7,22 @@
 .animate-pulse-dot {
   animation: pulse-dot 1.2s ease-in-out infinite;
 }
+
+/* hide scrollbar globally — all browsers */
+* {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+*::-webkit-scrollbar {
+  display: none;
+}
+
+/* shared page container to align perfectly with Navbar inner bounds */
+.shared-container {
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding-left: 24px; /* matches px-6 */
+  padding-right: 24px;
+}

@@ -3,8 +3,10 @@ import LoginForm from '../components/LoginForm';
 
 const Login = () => {
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0a0a0a] px-4 font-sans text-white">
-      <LoginForm />
+    <div className="min-h-screen flex items-center justify-center bg-[#000000] px-6" style={{ fontFamily: "system-ui, sans-serif" }}>
+      <div className="w-full" style={{ maxWidth: "480px" }}>
+        <LoginForm />
+      </div>
     </div>
   );
 };

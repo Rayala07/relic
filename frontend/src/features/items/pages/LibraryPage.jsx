@@ -76,7 +76,7 @@ const LibraryPage = () => {
   // View Layers
   if (loading && allItems.length === 0 && !error) {
     return (
-      <div className="min-h-screen bg-[#000000] flex items-center justify-center">
+      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex items-center justify-center">
         <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           LOADING
         </p>
@@ -85,12 +85,12 @@ const LibraryPage = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#000000] flex justify-center px-6 py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
-      <div className="w-full" style={{ maxWidth: "768px" }}>
+    <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+      <div className="shared-container">
         
         {/* TOP BAR */}
-        <div className="flex flex-col md:flex-row md:items-end justify-between border-b border-[#1a1a1a] pb-6 mb-8 gap-6">
-          <div className="flex flex-col gap-1">
+        <div className="flex flex-row items-end justify-between border-b border-[#1a1a1a] pb-6 mb-8 w-full gap-6">
+          <div className="flex flex-col gap-1 shrink-0">
             <h1 className="text-white uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               LIBRARY
             </h1>
@@ -99,7 +99,7 @@ const LibraryPage = () => {
             </span>
           </div>
 
-          <div className="flex flex-wrap gap-4">
+          <div className="flex flex-wrap gap-4 items-center justify-end">
             {FILTERS.map((f) => (
               <button
                 key={f}
@@ -147,7 +147,7 @@ const LibraryPage = () => {
 
         {/* GRID LAYOUT */}
         {displayedItems.length > 0 && (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
             {displayedItems.map((item) => (
               <ItemCard key={item._id} item={item} />
             ))}

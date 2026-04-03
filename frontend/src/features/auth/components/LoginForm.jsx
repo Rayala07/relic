@@ -20,22 +20,30 @@ const LoginForm = () => {
   };
 
   return (
-    <div className="w-full max-w-md p-8 bg-[#111111] border border-[#222222] rounded-2xl shadow-xl">
-      <div className="mb-8 text-center">
-        <h2 className="text-3xl font-bold text-white mb-2">Welcome Back</h2>
-        <p className="text-gray-400">Please enter your details to sign in.</p>
-      </div>
+    <div className="w-full flex flex-col gap-6">
+      
+      {/* HEADER */}
+      <h2 
+        className="text-[#666666] uppercase border-b border-[#1a1a1a] pb-4"
+        style={{ fontSize: "11px", letterSpacing: "0.08em" }}
+      >
+        SIGN IN
+      </h2>
 
+      {/* ERROR */}
       {error && (
-        <div className="mb-6 p-4 rounded-lg bg-red-950/50 border border-red-900/50 text-red-200 text-sm">
+        <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           {error}
-        </div>
+        </p>
       )}
 
-      <form onSubmit={onSubmit} className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Email address
+      {/* FORM */}
+      <form onSubmit={onSubmit} className="flex flex-col gap-6">
+        
+        {/* EMAIL INPUT */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            EMAIL ADDRESS
           </label>
           <input
             type="email"
@@ -43,14 +51,17 @@ const LoginForm = () => {
             required
             value={formData.email}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
-            placeholder="Enter your email"
+            placeholder="enter your email"
+            disabled={loading}
+            className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
+            style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
           />
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-300 mb-2">
-            Password
+        {/* PASSWORD INPUT */}
+        <div className="flex flex-col gap-2">
+          <label className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            PASSWORD
           </label>
           <input
             type="password"
@@ -58,29 +69,35 @@ const LoginForm = () => {
             required
             value={formData.password}
             onChange={handleChange}
-            className="w-full px-4 py-3 bg-[#1a1a1a] border border-[#333333] rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 focus:border-indigo-500 transition-colors"
             placeholder="••••••••"
+            disabled={loading}
+            className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
+            style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
           />
         </div>
 
+        {/* SUBMIT BUTTON */}
         <button
           type="submit"
           disabled={loading}
-          className="w-full py-3 px-4 bg-indigo-600 hover:bg-indigo-500 text-white font-medium rounded-lg transition-colors disabled:opacity-50 disabled:cursor-not-allowed mt-2"
+          className="w-full mt-2 bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
+          style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px", borderRadius: 0, border: "none", fontWeight: 500 }}
         >
-          {loading ? "Signing in..." : "Sign in"}
+          {loading ? "SIGNING IN..." : "SIGN IN"}
         </button>
       </form>
 
-      <p className="mt-8 text-center text-sm text-gray-400">
-        Don't have an account?{" "}
+      {/* FOOTER */}
+      <div className="pt-4 mt-2 border-t border-[#1a1a1a] text-center">
         <Link
           to="/register"
-          className="font-medium text-indigo-400 hover:text-indigo-300 transition-colors"
+          className="text-[#666666] hover:text-white transition-colors duration-150 uppercase"
+          style={{ fontSize: "11px", letterSpacing: "0.08em" }}
         >
-          Sign up
+          DON'T HAVE AN ACCOUNT? SIGN UP →
         </Link>
-      </p>
+      </div>
+      
     </div>
   );
 };
