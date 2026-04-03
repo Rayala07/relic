@@ -6,6 +6,7 @@ import LibraryPage from "../features/items/pages/LibraryPage";
 import ItemDetailPage from "../features/items/pages/ItemDetailPage";
 import Navbar from "./components/Navbar";
 import SearchPage from "../features/items/pages/SearchPage";
+import HomePage from "./pages/HomePage";
 
 import withAuth from "../features/auth/components/withAuth";
 import withGuest from "../features/auth/components/withGuest";
@@ -38,7 +39,7 @@ const routes = createBrowserRouter([
         children: [
             {
                 path: "/",
-                element: <ProtectedLibrary /> // Map base route to library matching the app scope
+                element: <HomePage />
             },
             {
                 path: "/register",
