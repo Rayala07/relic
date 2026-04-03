@@ -38,11 +38,15 @@ export async function semanticSearch(query, userId, options = {}) {
   const docs = await Item.find(
     { _id: { $in: ids } },
     {
+      title:            1,
       url:              1,
       type:             1,
       "content.title":  1,
       "content.excerpt": 1,
       "content.author": 1,
+      "ai.summary":     1,
+      "ai.tags":        1,
+      createdAt:        1,
     }
   ).lean();
 

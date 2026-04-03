@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import itemService from "../services/item.service";
 import ItemCard from "../components/ItemCard";
 
-const FILTERS = ["ALL", "PAGE", "PDF", "YOUTUBE", "TWITTER"];
+const FILTERS = ["ALL", "WEBPAGE", "DOCS", "YOUTUBE", "SOCIAL"];
 
 const LibraryPage = () => {
   const [allItems, setAllItems] = useState([]);
@@ -65,10 +65,10 @@ const LibraryPage = () => {
   const displayedItems = useMemo(() => {
     return allItems.filter(item => {
       if (activeFilter === "ALL") return true;
-      if (activeFilter === "PAGE" && item.type === "webpage") return true;
-      if (activeFilter === "PDF" && item.type === "pdf") return true;
+      if (activeFilter === "WEBPAGE" && item.type === "webpage") return true;
+      if (activeFilter === "DOCS" && item.type === "pdf") return true;
       if (activeFilter === "YOUTUBE" && item.type === "youtube") return true;
-      if (activeFilter === "TWITTER" && item.type === "tweet") return true;
+      if (activeFilter === "SOCIAL" && item.type === "tweet") return true;
       return false;
     });
   }, [allItems, activeFilter]);
@@ -145,11 +145,24 @@ const LibraryPage = () => {
           </div>
         ) : null}
 
+        {/* EMPTY FILTER STATE */}
+        {!loading && allItems.length > 0 && displayedItems.length === 0 && !error ? (
+          <div className="text-center mt-20 flex flex-col items-center gap-4 w-full">
+            <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              no {activeFilter === "ALL" ? "items" : activeFilter.toLowerCase()} found
+            </p>
+          </div>
+        ) : null}
+
         {/* GRID LAYOUT */}
         {displayedItems.length > 0 && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
             {displayedItems.map((item) => (
-              <ItemCard key={item._id} item={item} />
+              <ItemCard 
+                key={item._id} 
+                item={item} 
+                onDelete={(id) => setAllItems(prev => prev.filter(i => i._id !== id))} 
+              />
             ))}
           </div>
         )}

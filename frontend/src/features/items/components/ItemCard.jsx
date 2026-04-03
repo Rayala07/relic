@@ -1,6 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { timeAgo } from "../utils/timeAgo";
+import { RiDeleteBin4Fill } from "@remixicon/react";
+import itemService from "../services/item.service";
 
 function parseDomain(url) {
   try {
@@ -10,17 +12,18 @@ function parseDomain(url) {
   }
 }
 
-const ItemCard = ({ item }) => {
+const ItemCard = ({ item, onDelete }) => {
+  const [isDeleting, setIsDeleting] = useState(false);
   const { _id, type, content = {}, ai = {}, createdAt, url } = item;
 
   // 1. Map backend type to display label
   const typeMap = {
-    webpage: "PAGE",
-    pdf: "PDF",
+    webpage: "WEBPAGE",
+    pdf: "DOCS",
     youtube: "YOUTUBE",
-    tweet: "TWITTER",
+    tweet: "SOCIAL",
   };
-  const displayType = typeMap[type] || "PAGE";
+  const displayType = typeMap[type] || "WEBPAGE";
 
   // 2. Title fallback
   const title = item.title || content.title || parseDomain(url);
@@ -33,11 +36,26 @@ const ItemCard = ({ item }) => {
   const displayTags = tags.slice(0, 4);
   const extraTagsCount = tags.length - 4;
 
+  const handleDelete = async (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isDeleting) return;
+    
+    try {
+      setIsDeleting(true);
+      await itemService.deleteItem(_id);
+      if (onDelete) onDelete(_id);
+    } catch (err) {
+      console.error("Failed to delete item:", err);
+      setIsDeleting(false);
+    }
+  };
+
   return (
     <Link
       to={`/items/${_id}`}
       className="block w-full border border-[#1a1a1a] p-5 hover:border-white transition-colors duration-150 flex flex-col gap-4 group"
-      style={{ borderRadius: 0 }}
+      style={{ borderRadius: 0, opacity: isDeleting ? 0.5 : 1 }}
     >
       {/* 1. TYPE INDICATOR + DATE ROW */}
       <div
@@ -45,7 +63,18 @@ const ItemCard = ({ item }) => {
         style={{ fontSize: "11px", letterSpacing: "0.08em" }}
       >
         <span>{displayType}</span>
-        <span>{timeAgo(createdAt)}</span>
+        <div className="flex items-center gap-3">
+          <button 
+            type="button"
+            onClick={handleDelete}
+            disabled={isDeleting}
+            className="opacity-0 group-hover:opacity-100 text-[#666666] hover:text-[#ff3333] transition-all duration-150 disabled:opacity-0 cursor-pointer"
+            aria-label="Delete item"
+          >
+            <RiDeleteBin4Fill size={14} />
+          </button>
+          <span>{timeAgo(createdAt)}</span>
+        </div>
       </div>
 
       {/* 2. TITLE */}

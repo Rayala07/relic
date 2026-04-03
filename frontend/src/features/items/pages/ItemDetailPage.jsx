@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import itemService from "../services/item.service";
 import { timeAgo } from "../utils/timeAgo";
+import { RiDeleteBin4Fill } from "@remixicon/react";
 
 function parseDomain(url) {
   try {
@@ -15,6 +16,7 @@ function parseDomain(url) {
 // less db reads.
 const ItemDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
   
   const [item, setItem] = useState(null);
   const [related, setRelated] = useState([]);
@@ -22,6 +24,7 @@ const ItemDetailPage = () => {
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -95,17 +98,29 @@ const ItemDetailPage = () => {
   const { type, content = {}, ai = {}, createdAt, url } = item;
   
   const typeMap = {
-    webpage: "PAGE",
-    pdf: "PDF",
+    webpage: "WEBPAGE",
+    pdf: "DOCS",
     youtube: "YOUTUBE",
-    tweet: "TWITTER",
+    tweet: "SOCIAL",
   };
-  const displayType = typeMap[type] || "PAGE";
+  const displayType = typeMap[type] || "WEBPAGE";
   const title = item.title || content.title || parseDomain(url);
   const tags = ai.tags || [];
 
+  const handleDelete = async () => {
+    if (isDeleting) return;
+    try {
+      setIsDeleting(true);
+      await itemService.deleteItem(id);
+      navigate("/library");
+    } catch (err) {
+      console.error("Failed to delete item:", err);
+      setIsDeleting(false);
+    }
+  };
+
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="w-full bg-[#000000] flex justify-center py-6" style={{ fontFamily: "system-ui, sans-serif" }}>
       <div className="shared-container flex flex-col lg:flex-row gap-[64px] items-start">
         
         {/* LEFT COLUMN: Main Content */}
@@ -115,7 +130,7 @@ const ItemDetailPage = () => {
           <div className="flex flex-col">
             <Link 
               to="/library"
-              className="text-[#666666] hover:text-white transition-colors duration-150 uppercase self-start mb-8" 
+              className="text-[#666666] hover:text-white transition-colors duration-150 uppercase self-start mb-6" 
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               ← LIBRARY
@@ -132,7 +147,17 @@ const ItemDetailPage = () => {
             
             <div className="flex items-center justify-between text-[#666666] uppercase mb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               <span>{displayType}</span>
-              <span>{timeAgo(createdAt)}</span>
+              <div className="flex items-center gap-4">
+                <span>{timeAgo(createdAt)}</span>
+                <button 
+                  onClick={handleDelete}
+                  disabled={isDeleting}
+                  className="text-[#666666] hover:text-[#ff3333] transition-colors duration-150 cursor-pointer disabled:opacity-50"
+                  title="Delete item"
+                >
+                  <RiDeleteBin4Fill size={16} />
+                </button>
+              </div>
             </div>
 
             <h1 className="text-white leading-snug" style={{ fontSize: "20px", letterSpacing: "0.01em", fontWeight: 500 }}>
@@ -209,7 +234,7 @@ const ItemDetailPage = () => {
           ) : (
             <div className="flex flex-col gap-4">
               {related.map(rel => {
-                const relDisplayType = typeMap[rel.type] || "PAGE";
+                const relDisplayType = typeMap[rel.type] || "WEBPAGE";
                 const relTitle = rel.title || rel.content?.title || parseDomain(rel.url);
                 return (
                   <Link 

@@ -31,6 +31,10 @@ const itemService = {
   searchItems: async (query) => {
     const response = await apiClient.get(`/search?q=${encodeURIComponent(query)}`);
     return response.data;
+  },
+  deleteItem: async (id) => {
+    const response = await apiClient.delete(`/items/delete/${id}`);
+    return response.data;
   }
 };
 
