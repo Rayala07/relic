@@ -12,10 +12,22 @@ const itemService = {
     const response = await apiClient.post("/items/create", { url, title });
     return response.data;
   },
+  getAll: async (page = 1, limit = 12) => {
+    const response = await apiClient.get(`/items/get?page=${page}&limit=${limit}`);
+    return response.data;
+  },
   getById: async (id) => {
     const response = await apiClient.get(`/items/get/${id}`);
     return response.data;
   },
+  getRelated: async (id) => {
+    const response = await apiClient.get(`/items/get/${id}/related`);
+    return response.data;
+  },
+  getResurfaced: async () => {
+    const response = await apiClient.get(`/resurface`);
+    return response.data;
+  }
 };
 
 export default itemService;

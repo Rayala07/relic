@@ -69,10 +69,41 @@ export const createItem = async (req, res) => {
  */
 export const getItems = async (req, res) => {
   try {
-    // Scope query strictly to the requesting user
-    const items = await Item.find({ user: req.userId }).sort({ createdAt: -1 });
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 12;
+    const skip = (page - 1) * limit;
 
-    return res.status(200).json({ success: true, data: items });
+    const [items, total] = await Promise.all([
+      Item.find({ user: req.userId })
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .select({
+          title: 1,
+          url: 1,
+          type: 1,
+          "content.title": 1,
+          "content.excerpt": 1,
+          "content.author": 1,
+          "ai.summary": 1,
+          "ai.tags": 1,
+          createdAt: 1,
+        })
+        .lean(),
+      Item.countDocuments({ user: req.userId }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      data: items,
+      pagination: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+        hasMore: page * limit < total,
+      },
+    });
   } catch (error) {
     console.error("GetItems Error:", error);
     return res
@@ -96,7 +127,9 @@ export const getItems = async (req, res) => {
  */
 export const getItemById = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id);
+    const item = await Item.findById(req.params.id)
+      .select({ "ai.embedding": 0 })
+      .lean();
 
     if (!item) {
       return res
