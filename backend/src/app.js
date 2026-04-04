@@ -6,6 +6,7 @@ import itemRoutes from "./routes/item.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import resurfaceRouter from "./routes/resurface.routes.js";
+import graphRoutes from "./routes/graph.routes.js";
 import "dotenv/config";
 
 const app = express();
@@ -25,5 +26,6 @@ app.use("/api/items", itemRoutes);
 app.use("/api/search", searchRoutes);
 app.use("/api/collections", collectionRoutes);
 app.use("/api/resurface", resurfaceRouter);
+app.use("/api/graph", graphRoutes);
 
 export default app;

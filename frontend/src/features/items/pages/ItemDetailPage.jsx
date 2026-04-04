@@ -21,6 +21,10 @@ const ItemDetailPage = () => {
   const [item, setItem] = useState(null);
   const [related, setRelated] = useState([]);
   const [resurfaceDays, setResurfaceDays] = useState(null);
+  const [collections, setCollections] = useState([]);
+  
+  const [addingCollectionId, setAddingCollectionId] = useState(null);
+  const [addedCollectionId, setAddedCollectionId] = useState(null);
   
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -33,10 +37,11 @@ const ItemDetailPage = () => {
         setLoading(true);
         setError(null);
 
-        const [itemRes, relatedRes, resurfaceRes] = await Promise.all([
+        const [itemRes, relatedRes, resurfaceRes, collRes] = await Promise.all([
           itemService.getById(id),
           itemService.getRelated(id).catch(() => ({ success: true, count: 0, data: [] })),
-          itemService.getResurfaced().catch(() => ({ success: true, count: 0, data: [] }))
+          itemService.getResurfaced().catch(() => ({ success: true, count: 0, data: [] })),
+          itemService.getCollections().catch(() => ({ success: true, count: 0, data: [] }))
         ]);
 
         if (isMounted) {
@@ -54,6 +59,10 @@ const ItemDetailPage = () => {
             if (found) {
               setResurfaceDays(found.daysAgo);
             }
+          }
+          
+          if (collRes && collRes.success && collRes.data) {
+            setCollections(collRes.data.filter(c => c.type !== "auto"));
           }
         }
       } catch (err) {
@@ -116,6 +125,19 @@ const ItemDetailPage = () => {
     } catch (err) {
       console.error("Failed to delete item:", err);
       setIsDeleting(false);
+    }
+  };
+
+  const handleAddToCollection = async (collectionId) => {
+    try {
+      setAddingCollectionId(collectionId);
+      await itemService.addItemToCollection(collectionId, id);
+      setAddedCollectionId(collectionId);
+      setTimeout(() => setAddedCollectionId(null), 2000);
+    } catch (err) {
+      console.error("Failed to add to collection:", err);
+    } finally {
+      setAddingCollectionId(null);
     }
   };
 
@@ -222,7 +244,38 @@ const ItemDetailPage = () => {
         </div>
 
         {/* RIGHT COLUMN: Sidebar */}
-        <div className="w-full lg:w-[280px] flex flex-col gap-6 shrink-0 lg:sticky lg:top-[96px]">
+        <div className="w-full lg:w-[280px] flex flex-col gap-12 shrink-0 lg:sticky lg:top-[96px]">
+          
+          {/* ADD TO COLLECTION */}
+          {collections.length > 0 && (
+            <div className="flex flex-col gap-6">
+              <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+                ADD TO COLLECTION
+              </h2>
+              <div className="flex flex-col gap-3">
+                {collections.map(col => {
+                  const isAdding = addingCollectionId === col._id;
+                  const isAdded = addedCollectionId === col._id;
+                  
+                  return (
+                    <button
+                      key={col._id}
+                      onClick={() => handleAddToCollection(col._id)}
+                      disabled={isAdding || isAdded}
+                      className="text-left w-full border border-[#1a1a1a] p-3 text-[#666666] hover:text-white hover:border-white transition-colors duration-150 uppercase flex justify-between items-center group"
+                      style={{ fontSize: "11px", letterSpacing: "0.08em", background: "none", cursor: (isAdding || isAdded) ? "default" : "pointer" }}
+                    >
+                      <span className="truncate pr-2 leading-none block pt-[2px]">{col.name}</span>
+                      {isAdding && <span className="text-[#666666] shrink-0 leading-none">...</span>}
+                      {isAdded && <span className="text-white shrink-0 leading-none">ADDED</span>}
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* RELATED */}
           <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             RELATED
           </h2>

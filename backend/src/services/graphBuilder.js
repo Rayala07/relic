@@ -1,0 +1,101 @@
+import Item from '../models/item.model.js';
+import { findRelatedItems } from '../utils/pinecone.js';
+
+export async function buildGraph() {
+  // Step 1: fetch all done items — only fields needed
+  // for the graph, never fetch ai.embedding
+  const items = await Item.find(
+    { embeddingStatus: 'resolved' },
+    {
+      url: 1,
+      type: 1,
+      'content.title': 1,
+      'content.excerpt': 1,
+      'ai.tags': 1,
+      'ai.summary': 1,
+      createdAt: 1,
+    }
+  ).lean();
+
+  if (items.length === 0) {
+    return { nodes: [], edges: [] };
+  }
+
+  // Step 2: build nodes array
+  // Each node is a clean object d3 can work with
+  const nodes = items.map(item => ({
+    id: item._id.toString(),
+    title: item.content?.title || 'Untitled',
+    type: item.type || 'webpage',
+    tags: item.ai?.tags || [],
+    excerpt: item.content?.excerpt || '',
+    summary: item.ai?.summary || '',
+    url: item.url,
+    createdAt: item.createdAt,
+  }));
+
+  // Step 3: build edges via Pinecone similarity
+  // For each item, find its related items
+  // An edge is a pair of connected node ids
+  // Use a Set to avoid duplicate edges
+  // Edge A→B and B→A are the same edge — deduplicate
+  const edgeSet = new Set();
+  const edges = [];
+
+  // Process items in parallel with concurrency cap
+  // to avoid hammering Pinecone with 100 simultaneous
+  // requests — process in batches of 5
+  const BATCH_SIZE = 5;
+  const SIMILARITY_THRESHOLD = 0.78;
+
+  for (let i = 0; i < items.length; i += BATCH_SIZE) {
+    const batch = items.slice(i, i + BATCH_SIZE);
+
+    await Promise.all(
+      batch.map(async (item) => {
+        try {
+          const related = await findRelatedItems(
+            item._id.toString(),
+            5  // top 5 related per item
+          );
+
+          for (const match of related) {
+            if (match.score < SIMILARITY_THRESHOLD) continue;
+
+            // Normalize edge key — always smaller id first
+            // so A-B and B-A produce the same key
+            const sourceId = item._id.toString();
+            const targetId = match.mongoId;
+            const edgeKey = [sourceId, targetId]
+              .sort()
+              .join('--');
+
+            if (!edgeSet.has(edgeKey)) {
+              edgeSet.add(edgeKey);
+              edges.push({
+                id: edgeKey,
+                source: sourceId,
+                target: targetId,
+                score: parseFloat(match.score.toFixed(4)),
+              });
+            }
+          }
+        } catch (err) {
+          // If one item fails, log and continue —
+          // do not abort the entire graph build
+          console.error(
+            `graphBuilder: failed for item ${item._id}:`,
+            err.message
+          );
+        }
+      })
+    );
+  }
+
+  console.log(
+    `graphBuilder: ${nodes.length} nodes,`,
+    `${edges.length} edges`
+  );
+
+  return { nodes, edges };
+}

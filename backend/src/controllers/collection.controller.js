@@ -11,10 +11,18 @@ export const getCollections = async (req, res) => {
       .sort({ updatedAt: -1 })
       .lean();
 
-    const result = collections.map((col) => ({
-      ...col,
-      itemCount: col.items.length,
-    }));
+    // Safely enforce accurate counts by intersecting actual existing items directly without complex aggregate casts natively
+    const allItems = await Item.find({ user: req.userId }, { _id: 1 }).lean();
+    const validItemIds = new Set(allItems.map(i => i._id.toString()));
+
+    const result = collections.map((col) => {
+      const validItems = (col.items || []).filter(id => validItemIds.has(id.toString()));
+      return {
+        ...col,
+        items: validItems, // Purge orphaned items strictly
+        itemCount: validItems.length,
+      };
+    });
 
     return res.json({ success: true, count: result.length, data: result });
   } catch (err) {
@@ -41,6 +49,7 @@ export const getCollectionById = async (req, res) => {
       { _id: { $in: collection.items } },
       {
         url:               1,
+        title:             1,
         type:              1,
         "content.title":   1,
         "content.excerpt": 1,

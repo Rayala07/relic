@@ -7,6 +7,9 @@ import ItemDetailPage from "../features/items/pages/ItemDetailPage";
 import Navbar from "./components/Navbar";
 import SearchPage from "../features/items/pages/SearchPage";
 import HomePage from "./pages/HomePage";
+import CollectionListPage from "../features/collections/pages/CollectionListPage";
+import CollectionDetailPage from "../features/collections/pages/CollectionDetailPage";
+import GraphPage from "../features/graph/pages/GraphPage";
 
 import withAuth from "../features/auth/components/withAuth";
 import withGuest from "../features/auth/components/withGuest";
@@ -30,6 +33,9 @@ const ProtectedSave = withAuth(SavePage);
 const ProtectedLibrary = withAuth(LibraryPage);
 const ProtectedItem = withAuth(ItemDetailPage);
 const ProtectedSearch = withAuth(SearchPage);
+const ProtectedCollectionsList = withAuth(CollectionListPage);
+const ProtectedCollectionDetail = withAuth(CollectionDetailPage);
+const ProtectedGraph = withAuth(GraphPage);
 const GuestLogin = withGuest(Login);
 const GuestRegister = withGuest(Register);
 
@@ -64,6 +70,18 @@ const routes = createBrowserRouter([
             {
                 path: "/items/:id",
                 element: <ProtectedItem />
+            },
+            {
+                path: "/collections",
+                element: <ProtectedCollectionsList />
+            },
+            {
+                path: "/collections/:id",
+                element: <ProtectedCollectionDetail />
+            },
+            {
+                path: "/graph",
+                element: <ProtectedGraph />
             }
         ]
     }

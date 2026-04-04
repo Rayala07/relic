@@ -35,6 +35,38 @@ const itemService = {
   deleteItem: async (id) => {
     const response = await apiClient.delete(`/items/delete/${id}`);
     return response.data;
+  },
+  
+  // ========================
+  // COLLECTIONS ENDPOINTS
+  // ========================
+  getCollections: async () => {
+    const response = await apiClient.get('/collections');
+    return response.data;
+  },
+  getCollection: async (id) => {
+    const response = await apiClient.get(`/collections/${id}`);
+    return response.data;
+  },
+  createCollection: async (name, description) => {
+    const response = await apiClient.post('/collections', { name, description });
+    return response.data;
+  },
+  deleteCollection: async (id) => {
+    const response = await apiClient.delete(`/collections/${id}`);
+    return response.data;
+  },
+  addItemToCollection: async (collectionId, itemId) => {
+    const response = await apiClient.post(`/collections/${collectionId}/items`, { itemId });
+    return response.data;
+  },
+  
+  // ========================
+  // GRAPH ENDPOINTS
+  // ========================
+  getGraph: async () => {
+    const response = await apiClient.get('/graph');
+    return response.data.data;
   }
 };
 
