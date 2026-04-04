@@ -9,6 +9,7 @@ export async function buildGraph() {
     {
       url: 1,
       type: 1,
+      title: 1,
       'content.title': 1,
       'content.excerpt': 1,
       'ai.tags': 1,
@@ -25,7 +26,7 @@ export async function buildGraph() {
   // Each node is a clean object d3 can work with
   const nodes = items.map(item => ({
     id: item._id.toString(),
-    title: item.content?.title || 'Untitled',
+    title: item.title || item.content?.title || 'Untitled',
     type: item.type || 'webpage',
     tags: item.ai?.tags || [],
     excerpt: item.content?.excerpt || '',
@@ -33,6 +34,8 @@ export async function buildGraph() {
     url: item.url,
     createdAt: item.createdAt,
   }));
+
+  const nodeSet = new Set(nodes.map(n => n.id));
 
   // Step 3: build edges via Pinecone similarity
   // For each item, find its related items
@@ -62,10 +65,13 @@ export async function buildGraph() {
           for (const match of related) {
             if (match.score < SIMILARITY_THRESHOLD) continue;
 
-            // Normalize edge key — always smaller id first
-            // so A-B and B-A produce the same key
             const sourceId = item._id.toString();
             const targetId = match.mongoId;
+
+            // FIX: Ensure BOTH target and source nodes are actually present in the final graph array!
+            // If Pinecone returns a deleted/unresolved target item, silently ignore it to prevent UI mismatches.
+            if (!nodeSet.has(targetId)) continue;
+
             const edgeKey = [sourceId, targetId]
               .sort()
               .join('--');

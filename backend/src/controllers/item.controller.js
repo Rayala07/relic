@@ -238,6 +238,7 @@ export const getRelatedItems = async (req, res) => {
       { _id: { $in: relatedIds }, user: req.userId },
       {
         url:               1,
+        title:             1,
         type:              1,
         "content.title":   1,
         "content.excerpt": 1,

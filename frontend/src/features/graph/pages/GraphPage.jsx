@@ -21,6 +21,13 @@ const GraphPage = () => {
       setData(graphData);
       setNodeCount(graphData.nodes.length);
       setEdgeCount(graphData.edges.length);
+
+      console.log('RAW GRAPH DATA:', JSON.stringify({
+        nodeCount: graphData?.nodes?.length,
+        edgeCount: graphData?.edges?.length,
+        node0: graphData?.nodes?.[0],
+        edge0: graphData?.edges?.[0],
+      }, null, 2));
     } catch (err) {
       setError(err.response?.data?.error || err.message || "Failed to load graph");
     } finally {
@@ -76,15 +83,15 @@ const GraphPage = () => {
         {!loading && !error && data.nodes.length > 0 && (
           <div className="flex flex-col gap-2">
             {[
-              { label: "PAGE", opacity: 1 },
-              { label: "PDF", opacity: 0.85 },
-              { label: "YOUTUBE", opacity: 0.7 },
-              { label: "TWITTER", opacity: 0.55 },
+              { label: "WEBPAGE", bg: '#ffffff', border: 'none' },
+              { label: "DOCS", bg: '#9b9b9b', border: 'none' },
+              { label: "YOUTUBE", bg: '#5a5a5a', border: 'none' },
+              { label: "SOCIAL", bg: '#2e2e2e', border: '1px solid #5a5a5a' },
             ].map((type) => (
               <div key={type.label} className="flex items-center gap-2 pointer-events-auto">
                 <div 
-                  className="w-[6px] h-[6px] rounded-full border border-white/20" 
-                  style={{ backgroundColor: `rgba(255, 255, 255, ${type.opacity})` }}
+                  className="w-[6px] h-[6px] rounded-full" 
+                  style={{ backgroundColor: type.bg, ...(type.border !== 'none' ? { border: type.border } : {}) }}
                 />
                 <span className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                   {type.label}

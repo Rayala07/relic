@@ -1,13 +1,7 @@
 import { useEffect, useRef } from 'react';
 import * as d3 from 'd3';
 
-// Node color by content type — monochromatic with subtle opacity differences
-const TYPE_OPACITY = {
-  webpage: 1,
-  pdf:     0.85,
-  youtube: 0.7,
-  twitter: 0.55,
-};
+// removed constants array natively
 
 const NODE_RADIUS = {
   default: 6,
@@ -64,15 +58,33 @@ export default function ForceGraph({ nodes, edges, onNodeClick, onNodeHover }) {
     const nodeById = new Map(simNodes.map(n => [n.id, n]));
 
     const simEdges = edges
-      .map(e => ({
-        ...e,
-        source: nodeById.get(e.source) || e.source,
-        target: nodeById.get(e.target) || e.target,
-      }))
+      .map(e => {
+        // Extract string ID whether source is a string or a pre-resolved object
+        const sourceId = typeof e.source === 'object' ? e.source.id : e.source;
+        const targetId = typeof e.target === 'object' ? e.target.id : e.target;
+        return {
+          ...e,
+          source: nodeById.get(sourceId) || sourceId,
+          target: nodeById.get(targetId) || targetId,
+        };
+      })
       .filter(e =>
         typeof e.source === 'object' &&
         typeof e.target === 'object'
       );
+
+    // Add this log to confirm edges resolved correctly
+    console.log('SIMEDGES:', simEdges.length,
+      simEdges[0] ? JSON.stringify({
+        source: simEdges[0].source?.id,
+        target: simEdges[0].target?.id,
+        score: simEdges[0].score,
+      }) : 'NONE RESOLVED'
+    );
+    if (!simEdges[0]) {
+      console.log('nodeById keys (first 3):', [...nodeById.keys()].slice(0, 3));
+      console.log('edges[0] raw:', JSON.stringify(edges[0]));
+    }
 
     const simulation = d3.forceSimulation(simNodes)
       .force('link',
@@ -104,8 +116,8 @@ export default function ForceGraph({ nodes, edges, onNodeClick, onNodeHover }) {
       .data(simEdges)
       .join('line')
       .attr('stroke', '#ffffff')
-      .attr('stroke-opacity', d => 0.06 + d.score * 0.12)
-      .attr('stroke-width', d => 0.5 + d.score * 0.8);
+      .attr('stroke-opacity', 0.5)
+      .attr('stroke-width', 1.5);
 
     const node = g.append('g')
       .attr('class', 'nodes')
@@ -126,11 +138,19 @@ export default function ForceGraph({ nodes, edges, onNodeClick, onNodeHover }) {
     node.append('circle')
       .attr('class', 'node-circle')
       .attr('r', d => getNodeRadius(d, simEdges))
-      .attr('fill', '#ffffff')
-      .attr('fill-opacity', d => TYPE_OPACITY[d.type] || TYPE_OPACITY.webpage)
+      .attr('fill', d => {
+        const colors = {
+          webpage: '#ffffff',
+          pdf:     '#9b9b9b',
+          youtube: '#5a5a5a',
+          twitter: '#2e2e2e',
+        };
+        return colors[d.type] || '#ffffff';
+      })
+      .attr('fill-opacity', 1)
       .attr('stroke', '#ffffff')
-      .attr('stroke-width', 0.5)
-      .attr('stroke-opacity', 0.3);
+      .attr('stroke-width', 1)
+      .attr('stroke-opacity', 0.5);
 
     node.append('text')
       .attr('class', 'node-label')
@@ -159,9 +179,14 @@ export default function ForceGraph({ nodes, edges, onNodeClick, onNodeHover }) {
         });
 
         node.selectAll('.node-circle')
-          .attr('fill-opacity', n => connectedIds.has(n.id) ? (TYPE_OPACITY[n.type] || 1) : 0.08);
+          .attr('fill', n => {
+            const colors = { webpage: '#ffffff', pdf: '#9b9b9b', youtube: '#5a5a5a', twitter: '#2e2e2e' };
+            const baseType = colors[n.type] || '#ffffff';
+            return connectedIds.has(n.id) ? baseType : '#1a1a1a';
+          })
+          .attr('fill-opacity', 1);
 
-        link.attr('stroke-opacity', e => e.source.id === d.id || e.target.id === d.id ? 0.5 : 0.02);
+        link.attr('stroke-opacity', e => e.source.id === d.id || e.target.id === d.id ? 0.8 : 0.05);
 
         d3.select(this).select('.node-label').transition().duration(150).attr('fill-opacity', 1);
         d3.select(this).select('.node-ring').transition().duration(150).attr('stroke-opacity', 0.3);
@@ -170,9 +195,13 @@ export default function ForceGraph({ nodes, edges, onNodeClick, onNodeHover }) {
         if (onNodeHover) onNodeHover(null);
 
         node.selectAll('.node-circle')
-          .attr('fill-opacity', n => TYPE_OPACITY[n.type] || TYPE_OPACITY.webpage);
+          .attr('fill', n => {
+            const colors = { webpage: '#ffffff', pdf: '#9b9b9b', youtube: '#5a5a5a', twitter: '#2e2e2e' };
+            return colors[n.type] || '#ffffff';
+          })
+          .attr('fill-opacity', 1);
 
-        link.attr('stroke-opacity', e => 0.06 + e.score * 0.12);
+        link.attr('stroke-opacity', 0.5);
 
         d3.select(this).select('.node-label').transition().duration(150).attr('fill-opacity', 0);
         d3.select(this).select('.node-ring').transition().duration(150).attr('stroke-opacity', 0);
@@ -207,27 +236,31 @@ export default function ForceGraph({ nodes, edges, onNodeClick, onNodeHover }) {
 
     simulation.on('tick', () => {
       link
-        .attr('x1', d => d.source.x)
-        .attr('y1', d => d.source.y)
-        .attr('x2', d => d.target.x)
-        .attr('y2', d => d.target.y);
+        .attr('x1', d => d.source?.x ?? 0)
+        .attr('y1', d => d.source?.y ?? 0)
+        .attr('x2', d => d.target?.x ?? 0)
+        .attr('y2', d => d.target?.y ?? 0);
 
       node.attr('transform', d => `translate(${d.x},${d.y})`);
     });
 
     node.selectAll('.node-circle')
+      .attr('fill', d => {
+        const colors = { webpage: '#ffffff', pdf: '#9b9b9b', youtube: '#5a5a5a', twitter: '#2e2e2e' };
+        return colors[d.type] || '#ffffff';
+      })
       .attr('fill-opacity', 0)
       .transition()
       .delay((d, i) => i * 8)
       .duration(600)
-      .attr('fill-opacity', d => TYPE_OPACITY[d.type] || TYPE_OPACITY.webpage);
+      .attr('fill-opacity', 1);
 
     link
       .attr('stroke-opacity', 0)
       .transition()
       .delay(400)
       .duration(800)
-      .attr('stroke-opacity', d => 0.06 + d.score * 0.12);
+      .attr('stroke-opacity', 0.5);
 
     const handleResize = () => {
       const w = container.clientWidth;
