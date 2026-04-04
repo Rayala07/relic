@@ -4,7 +4,7 @@ import { useAuth } from "../../features/auth/hooks/useAuth";
 
 const Navbar = () => {
   const { pathname } = useLocation();
-  const { user, handleLogout } = useAuth();
+  const { user, isAuthLoading, handleLogout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
 
@@ -62,7 +62,7 @@ const Navbar = () => {
 
       {/* CENTER: Navigation Links */}
       <div className="absolute left-[50%] translate-x-[-50%] flex items-center gap-6">
-        {navLinks.map((link) => {
+        {!isAuthLoading && user && navLinks.map((link) => {
           const isActive = link.path === "/" ? pathname === "/" : pathname.startsWith(link.path);
           return (
             <Link
@@ -79,7 +79,15 @@ const Navbar = () => {
 
       {/* RIGHT: Profile & Dropdown */}
       <div className="relative flex items-center min-w-[120px] justify-end" ref={dropdownRef}>
-        {!user ? (
+        {isAuthLoading ? (
+          <div style={{
+            width: 32,
+            height: 32,
+            borderRadius: '50%',
+            background: 'transparent',
+            border: '1px solid transparent'
+          }} />
+        ) : !user ? (
           <div className="flex items-center gap-4">
             <Link to="/login" className="text-[#666666] hover:text-white uppercase transition-colors" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>LOGIN</Link>
             <Link to="/register" className="bg-white text-black px-4 py-[8px] hover:bg-[#e0e0e0] uppercase transition-colors" style={{ fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500 }}>SIGN UP</Link>

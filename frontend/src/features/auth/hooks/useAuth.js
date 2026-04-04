@@ -1,12 +1,36 @@
+import { useEffect, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import authService from "../services/auth.service";
-import { setUser, setLoading, setError, clearAuth } from "../authSlice";
+import { setUser, setLoading, setError, clearAuth, setAuthLoading } from "../authSlice";
 import { useNavigate } from "react-router-dom";
 
 export const useAuth = () => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { user, loading, error } = useSelector((state) => state.auth);
+  const { user, loading, error, isAuthLoading } = useSelector((state) => state.auth);
+  
+  // Track to ensure strict mode doesn't execute twice concurrently
+  const hasFetched = useRef(false);
+
+  useEffect(() => {
+    if (isAuthLoading && !user && !hasFetched.current) {
+      hasFetched.current = true;
+      authService.getMe()
+        .then((res) => {
+          if (res.success && res.user) {
+            dispatch(setUser(res.user));
+          } else {
+            dispatch(clearAuth());
+          }
+        })
+        .catch(() => {
+          dispatch(clearAuth());
+        })
+        .finally(() => {
+          dispatch(setAuthLoading(false));
+        });
+    }
+  }, [dispatch, isAuthLoading, user]);
 
   const handleRegister = async (userData) => {
     try {
@@ -60,6 +84,7 @@ export const useAuth = () => {
     user,
     loading,
     error,
+    isAuthLoading,
     handleRegister,
     handleLogin,
     handleLogout,
