@@ -47,7 +47,7 @@ const withGuest = (WrappedComponent) => {
     }
 
     if (user) {
-      return <Navigate to="/library" replace />;
+      return <Navigate to="/" replace />;
     }
 
     return <WrappedComponent {...props} />;

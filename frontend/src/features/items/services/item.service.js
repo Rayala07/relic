@@ -62,6 +62,14 @@ const itemService = {
   },
   
   // ========================
+  // STATS ENDPOINTS
+  // ========================
+  getStats: async () => {
+    const response = await apiClient.get("/stats");
+    return response.data.data;
+  },
+
+  // ========================
   // GRAPH ENDPOINTS
   // ========================
   getGraph: async () => {
