@@ -99,7 +99,6 @@ const Navbar = () => {
           fontFamily: "system-ui, sans-serif",
           width: "100%",
           boxSizing: "border-box",
-          overflow: "hidden",
         }}
       >
         {/* LEFT: Branding — never shrinks */}
