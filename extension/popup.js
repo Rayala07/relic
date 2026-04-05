@@ -8,6 +8,7 @@
  */
 
 const openRelicBtn = document.getElementById("open-relic-btn");
+const titleInput = document.getElementById("title-input");
 const urlInput = document.getElementById("url-input");
 const saveBtn = document.getElementById("save-btn");
 const statusEl = document.getElementById("status");
@@ -47,7 +48,13 @@ function setLoading(isLoading) {
 
 // ── 3. Save handler ──────────────────────────────────────────────────────────
 saveBtn.addEventListener("click", async () => {
+  const title = titleInput.value.trim();
   const url = urlInput.value.trim();
+
+  if (!title) {
+    showStatus("PLEASE ENTER A TITLE.", "error");
+    return;
+  }
 
   if (!url) {
     showStatus("PLEASE ENTER A URL.", "error");
@@ -59,7 +66,7 @@ saveBtn.addEventListener("click", async () => {
   const response = await chrome.runtime.sendMessage({
     type: "SAVE_ITEM",
     payload: {
-      title: "", // Empty title lets backend extraction layer grab semantic title natively 
+      title: title,
       url: url,
     },
   });
@@ -68,6 +75,7 @@ saveBtn.addEventListener("click", async () => {
 
   if (response.success) {
     showStatus("✓ SAVED SUCCESSFULLY!", "success");
+    titleInput.value = "";
     urlInput.value = "";
   } else {
     const isAuthError =
