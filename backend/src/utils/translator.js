@@ -124,8 +124,6 @@ export async function translateToEnglish(content) {
     return { ...content, originalLanguage: langCode };
   }
 
-  console.log(`Translator: detected "${langCode}", translating to English...`);
-
   // title and author are always short  — direct call is fine.
   // body can be a full webpage (50k+ chars) — use chunked translation.
   const [translatedTitle, translatedBody, translatedAuthor] = await Promise.all([

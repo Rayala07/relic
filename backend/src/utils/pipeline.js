@@ -57,10 +57,6 @@ async function extractionPipeline(itemId) {
       },
       extractionStatus: "resolved",
     });
-
-    console.log(
-      `Pipeline: extracted + translated "${translatedContent.title}" for item ${itemId}`,
-    );
   } catch (err) {
     const status = err.response?.status;
     const reason =
@@ -89,9 +85,6 @@ async function extractionPipeline(itemId) {
     const chunks = await chunkText(translatedContent.body);
 
     if (chunks.length === 0) {
-      console.log(
-        `Pipeline: no chunks for item ${itemId} — skipping embedding`,
-      );
       await Item.findByIdAndUpdate(itemId, { embeddingStatus: "resolved" });
       return;
     }
@@ -124,10 +117,6 @@ async function extractionPipeline(itemId) {
       embeddingStatus: "resolved",
     });
 
-    console.log(`Pipeline: tags generated for ${itemId} —`, tags);
-    console.log(
-      `Pipeline: upserted ${chunks.length} chunks for item ${itemId}`,
-    );
 
     // Fire-and-forget — auto-organize runs after done, never blocks the pipeline
     autoOrganizeItem(itemId, item.user).catch((err) =>

@@ -101,10 +101,5 @@ export async function buildGraph(userId) {
     );
   }
 
-  console.log(
-    `graphBuilder: ${nodes.length} nodes,`,
-    `${edges.length} edges`
-  );
-
   return { nodes, edges };
 }

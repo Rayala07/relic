@@ -25,7 +25,6 @@ function getDateRange(daysAgo) {
 }
 
 async function runResurface() {
-  console.log('Resurfacer: running job...');
   const found = [];
 
   for (const daysAgo of RESURFACE_DAYS) {
@@ -54,7 +53,6 @@ async function runResurface() {
   }
 
   resurfacedItems = found;
-  console.log(`Resurfacer: found ${found.length} items to resurface`);
 }
 
 function getResurfacedItems() {
@@ -68,15 +66,11 @@ function startResurfacerCron() {
     console.error('Resurfacer initial run failed:', err.message)
   );
 
-  // Then run every day at 9am
-  // Cron format: second minute hour day month weekday
   cron.schedule('0 9 * * *', () => {
     runResurface().catch(err =>
       console.error('Resurfacer cron failed:', err.message)
     );
   });
-
-  console.log('Resurfacer: cron job scheduled for 9am daily');
 }
 
 export { startResurfacerCron, getResurfacedItems };

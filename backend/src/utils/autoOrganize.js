@@ -21,12 +21,11 @@ export async function autoOrganizeItem(itemId, userId) {
     const item = await Item.findById(itemId, { "ai.tags": 1 }).lean();
 
     if (!item || !item.ai?.tags || item.ai.tags.length === 0) {
-      console.log(`autoOrganize: no tags for item ${itemId}, skipping`);
       return;
     }
 
     const itemTags = item.ai.tags;
-    console.log(`autoOrganize: processing item ${itemId} with tags`, itemTags);
+
 
     // Step 2: check existing auto-collections owned by this user
     // Does this item share MIN_SHARED_TAGS+ tags with any of them?
@@ -44,9 +43,6 @@ export async function autoOrganizeItem(itemId, userId) {
         await Collection.findByIdAndUpdate(col._id, {
           $addToSet: { items: itemId },
         });
-        console.log(
-          `autoOrganize: added item ${itemId} to collection "${col.name}"`
-        );
         addedToCollection = true;
       }
     }
@@ -109,15 +105,8 @@ export async function autoOrganizeItem(itemId, userId) {
           user: userId,
           items: allItemIds,
         });
-
-        console.log(
-          `autoOrganize: created new collection "${collectionName}" with ${allItemIds.length} items`
-        );
       }
     } else {
-      console.log(
-        `autoOrganize: item ${itemId} does not qualify for any collection yet`
-      );
     }
   } catch (err) {
     // Never crash the pipeline if auto-organize fails

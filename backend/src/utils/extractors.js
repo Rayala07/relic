@@ -57,7 +57,6 @@ function normalise({ title, body, author, excerpt } = {}) {
 // Used when direct HTTP fetch gets a 403 (bot protection) or a JS-only SPA.
 // Free, no API key, no extra npm packages — just a different fetch URL.
 async function jinaFallback(url) {
-  console.log(`Extractor: direct fetch blocked — trying Jina Reader for ${url}`);
   const jinaUrl = `https://r.jina.ai/${url}`;
   const { data: markdown } = await axios.get(jinaUrl, {
     timeout: 20000,
@@ -107,7 +106,6 @@ export async function extractWebpage(url) {
       // If Readability found something but it's suspiciously short, the page
       // is likely a SPA — the static HTML only has a tiny content stub.
       if (wordCount < MIN_BODY_WORDS) {
-        console.log(`Extractor: thin content (${wordCount} words) — trying Jina for ${url}`);
         return jinaFallback(url);
       }
 
@@ -120,7 +118,6 @@ export async function extractWebpage(url) {
 
     // OG description is also thin — definitely a SPA, escalate to Jina
     if (ogWordCount < MIN_BODY_WORDS) {
-      console.log(`Extractor: OG tags thin (${ogWordCount} words) — trying Jina for ${url}`);
       return jinaFallback(url);
     }
 

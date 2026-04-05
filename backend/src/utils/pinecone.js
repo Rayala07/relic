@@ -42,12 +42,10 @@ export async function deleteChunks(itemId) {
   const ids = (listed.vectors ?? []).map((v) => v.id);
 
   if (ids.length === 0) {
-    console.log(`Pinecone: no chunks found for item ${itemId} — nothing to delete`);
     return;
   }
 
   await index.deleteMany({ ids });
-  console.log(`Pinecone: deleted ${ids.length} chunks for item ${itemId}`);
 }
 
 /**

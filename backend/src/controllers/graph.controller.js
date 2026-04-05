@@ -3,7 +3,6 @@ import { buildGraph } from '../services/graphBuilder.js';
 export const getGraph = async (req, res) => {
   try {
     const userId = req.userId;
-    console.log('graph: building fresh graph...');
     const graph = await buildGraph(userId);
 
     res.json({
