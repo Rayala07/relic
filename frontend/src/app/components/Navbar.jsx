@@ -6,13 +6,19 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const { user, isAuthLoading, handleLogout } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
+  const menuRef = useRef(null);
 
   // Close dropdown on outside click
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
+      }
+      // Close hamburger menu if clicking outside of it
+      if (menuRef.current && !menuRef.current.contains(event.target)) {
+        setMenuOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
@@ -21,13 +27,27 @@ const Navbar = () => {
     };
   }, []);
 
+  // Close mobile menu on route change
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [pathname]);
+
+  // Close mobile menu on Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // If on a public auth page, entirely hide the layout navigation wrapper
   if (pathname === "/login" || pathname === "/register") {
     return null;
   }
 
-  const initials = user?.name 
-    ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() 
+  const initials = user?.name
+    ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
     : user?.email?.substring(0, 2).toUpperCase() || '??';
 
   const navLinks = [
@@ -41,84 +61,240 @@ const Navbar = () => {
 
   const triggerLogout = async () => {
     setDropdownOpen(false);
+    setMenuOpen(false);
     await handleLogout();
   };
 
+  const isLinkActive = (link) =>
+    link.path === "/" ? pathname === "/" : pathname.startsWith(link.path);
+
+  const linkStyle = (active) => ({
+    fontSize: "11px",
+    letterSpacing: "0.08em",
+    color: active ? "#ffffff" : "#666666",
+    textTransform: "uppercase",
+    textDecoration: "none",
+    transition: "color 0.15s",
+    whiteSpace: "nowrap",
+    flexShrink: 0,
+  });
+
   return (
-    <nav className="fixed top-0 left-0 right-0 h-[72px] bg-[#000000] border-b border-[#1a1a1a] z-50 px-6 flex items-center justify-between" style={{ fontFamily: "system-ui, sans-serif" }}>
-      
-      {/* LEFT: Branding */}
-      <div className="flex items-center gap-3">
-        <Link to="/" className="flex items-center gap-3 group cursor-pointer">
-          <img src="/Relic_logo.png" alt="Relic logo" className="w-[24px] h-[24px] object-contain opacity-80 group-hover:opacity-100 transition-opacity duration-150" />
-          <span 
-            className="text-white uppercase transition-colors duration-150" 
-            style={{ fontSize: "16px", letterSpacing: "0.08em", fontWeight: 600 }}
-          >
-            Relic
-          </span>
-        </Link>
-      </div>
-
-      {/* CENTER: Navigation Links */}
-      <div className="absolute left-[50%] translate-x-[-50%] flex items-center gap-6">
-        {!isAuthLoading && user && navLinks.map((link) => {
-          const isActive = link.path === "/" ? pathname === "/" : pathname.startsWith(link.path);
-          return (
-            <Link
-              key={link.name}
-              to={link.path}
-              className={`uppercase transition-colors duration-150 hover:text-white ${isActive ? "text-white" : "text-[#666666]"}`}
-              style={{ fontSize: "11px", letterSpacing: "0.08em" }}
+    <div ref={menuRef} style={{ position: "relative", zIndex: 50 }}>
+      {/* ── NAVBAR BAR ─────────────────────────────────────────────── */}
+      <nav
+        style={{
+          position: "fixed",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: "72px",
+          background: "#000000",
+          borderBottom: "1px solid #1a1a1a",
+          zIndex: 50,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          padding: "0 24px",
+          fontFamily: "system-ui, sans-serif",
+          width: "100%",
+          boxSizing: "border-box",
+          overflow: "hidden",
+        }}
+      >
+        {/* LEFT: Branding — never shrinks */}
+        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "12px" }}>
+          <Link to="/" style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
+            <img
+              src="/Relic_logo.png"
+              alt="Relic logo"
+              style={{ width: 24, height: 24, objectFit: "contain", opacity: 0.8 }}
+            />
+            <span
+              className="relic-logo-text"
+              style={{ color: "#ffffff", fontSize: "16px", letterSpacing: "0.08em", fontWeight: 600, whiteSpace: "nowrap" }}
             >
-              {link.name}
-            </Link>
-          );
-        })}
-      </div>
+              Relic
+            </span>
+          </Link>
+        </div>
 
-      {/* RIGHT: Profile & Dropdown */}
-      <div className="relative flex items-center min-w-[120px] justify-end" ref={dropdownRef}>
-        {isAuthLoading ? (
-          <div style={{
-            width: 32,
-            height: 32,
-            borderRadius: '50%',
-            background: 'transparent',
-            border: '1px solid transparent'
-          }} />
-        ) : !user ? (
-          <div className="flex items-center gap-4">
-            <Link to="/login" className="text-[#666666] hover:text-white uppercase transition-colors" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>LOGIN</Link>
-            <Link to="/register" className="bg-white text-black px-4 py-[8px] hover:bg-[#e0e0e0] uppercase transition-colors" style={{ fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500 }}>SIGN UP</Link>
+        {/* CENTER: Desktop nav links — hidden below 1024px */}
+        {!isAuthLoading && user && (
+          <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "24px", flexShrink: 1, minWidth: 0, overflow: "hidden" }}>
+            {navLinks.map((link) => (
+              <Link
+                key={link.name}
+                to={link.path}
+                style={linkStyle(isLinkActive(link))}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "#ffffff"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = isLinkActive(link) ? "#ffffff" : "#666666"; }}
+              >
+                {link.name}
+              </Link>
+            ))}
           </div>
-        ) : (
-          <>
-            <button
-              onClick={() => setDropdownOpen((prev) => !prev)}
-              className="w-[32px] h-[32px] rounded-full bg-[#0a0a0a] border border-[#1a1a1a] flex items-center justify-center cursor-pointer hover:border-[#333333] transition-colors duration-150 outline-none"
-            >
-              <span className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
-                {initials}
-              </span>
-            </button>
-
-            {dropdownOpen && (
-              <div className="absolute top-[40px] right-0 mt-2 bg-[#0a0a0a] border border-[#1a1a1a] py-[8px] min-w-[120px] shadow-none flex flex-col z-50" style={{ borderRadius: 0 }}>
-                <button
-                  onClick={triggerLogout}
-                  className="w-full text-left px-4 py-2 uppercase text-[#666666] hover:text-white hover:bg-[#111111] transition-colors duration-150 cursor-pointer outline-none"
-                  style={{ fontSize: "11px", letterSpacing: "0.08em", border: "none", background: "transparent" }}
-                >
-                  LOGOUT
-                </button>
-              </div>
-            )}
-          </>
         )}
-      </div>
 
-    </nav>
+        {/* RIGHT: Profile + hamburger — never shrinks */}
+        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "12px" }}>
+
+          {/* Hamburger — only visible below 1024px */}
+          {!isAuthLoading && user && (
+            <button
+              className="hamburger-btn"
+              onClick={() => setMenuOpen((prev) => !prev)}
+              aria-label="Toggle navigation menu"
+              style={{
+                background: "none",
+                border: "none",
+                padding: "8px",
+                cursor: "pointer",
+                display: "none", // shown via CSS below 1024px
+                flexDirection: "column",
+                gap: "4px",
+                alignItems: "center",
+                justifyContent: "center",
+              }}
+            >
+              <span
+                style={{
+                  display: "block",
+                  width: 18,
+                  height: 1,
+                  background: "#ffffff",
+                  transition: "transform 0.2s ease, opacity 0.2s ease",
+                  transform: menuOpen ? "translateY(5px) rotate(45deg)" : "none",
+                }}
+              />
+              <span
+                style={{
+                  display: "block",
+                  width: 18,
+                  height: 1,
+                  background: "#ffffff",
+                  transition: "opacity 0.2s ease",
+                  opacity: menuOpen ? 0 : 1,
+                }}
+              />
+              <span
+                style={{
+                  display: "block",
+                  width: 18,
+                  height: 1,
+                  background: "#ffffff",
+                  transition: "transform 0.2s ease, opacity 0.2s ease",
+                  transform: menuOpen ? "translateY(-5px) rotate(-45deg)" : "none",
+                }}
+              />
+            </button>
+          )}
+
+          {/* Profile circle & dropdown */}
+          <div className="profile-area" ref={dropdownRef} style={{ position: "relative", display: "flex", alignItems: "center" }}>
+            {isAuthLoading ? (
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "transparent", border: "1px solid transparent" }} />
+            ) : !user ? (
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <Link to="/login" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color="#ffffff"} onMouseLeave={e => e.currentTarget.style.color="#666666"}>LOGIN</Link>
+                <Link
+                  to="/register"
+                  style={{ background: "#ffffff", color: "#000000", padding: "8px 16px", fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500, textTransform: "uppercase", textDecoration: "none", transition: "background 0.15s", whiteSpace: "nowrap" }}
+                  onMouseEnter={e => e.currentTarget.style.background="#e0e0e0"}
+                  onMouseLeave={e => e.currentTarget.style.background="#ffffff"}
+                >
+                  SIGN UP
+                </Link>
+              </div>
+            ) : (
+              <>
+                <button
+                  onClick={() => setDropdownOpen((prev) => !prev)}
+                  style={{
+                    width: 32, height: 32, borderRadius: "50%",
+                    background: "#0a0a0a", border: "1px solid #1a1a1a",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    cursor: "pointer", outline: "none", flexShrink: 0,
+                  }}
+                >
+                  <span style={{ color: "#666666", fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                    {initials}
+                  </span>
+                </button>
+
+                {dropdownOpen && (
+                  <div
+                    style={{
+                      position: "absolute", top: "40px", right: 0, marginTop: "8px",
+                      background: "#0a0a0a", border: "1px solid #1a1a1a",
+                      paddingTop: "8px", paddingBottom: "8px", minWidth: "120px",
+                      display: "flex", flexDirection: "column", zIndex: 60,
+                      borderRadius: 0,
+                    }}
+                  >
+                    <button
+                      onClick={triggerLogout}
+                      style={{
+                        width: "100%", textAlign: "left", padding: "8px 16px",
+                        fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase",
+                        color: "#666666", background: "transparent", border: "none",
+                        cursor: "pointer", transition: "color 0.15s",
+                      }}
+                      onMouseEnter={e => { e.currentTarget.style.color="#ffffff"; e.currentTarget.style.background="#111111"; }}
+                      onMouseLeave={e => { e.currentTarget.style.color="#666666"; e.currentTarget.style.background="transparent"; }}
+                    >
+                      LOGOUT
+                    </button>
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+      </nav>
+
+      {/* ── MOBILE DROPDOWN PANEL ──────────────────────────────────── */}
+      {menuOpen && user && (
+        <div
+          style={{
+            position: "fixed",
+            top: "72px",
+            left: 0,
+            right: 0,
+            background: "#000000",
+            borderBottom: "1px solid #1a1a1a",
+            zIndex: 49,
+            padding: "0 24px",
+          }}
+        >
+          {navLinks.map((link, idx) => {
+            const active = isLinkActive(link);
+            return (
+              <Link
+                key={link.name}
+                to={link.path}
+                onClick={() => setMenuOpen(false)}
+                style={{
+                  display: "block",
+                  padding: "16px 0",
+                  fontSize: "11px",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: active ? "#ffffff" : "#666666",
+                  textDecoration: "none",
+                  borderBottom: idx < navLinks.length - 1 ? "1px solid #1a1a1a" : "none",
+                  transition: "color 0.15s",
+                }}
+                onMouseEnter={e => e.currentTarget.style.color="#ffffff"}
+                onMouseLeave={e => e.currentTarget.style.color= active ? "#ffffff" : "#666666"}
+              >
+                {link.name}
+              </Link>
+            );
+          })}
+        </div>
+      )}
+    </div>
   );
 };
 

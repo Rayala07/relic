@@ -51,3 +51,47 @@
   padding-left: 24px; /* matches px-6 */
   padding-right: 24px;
 }
+
+/* ── Overflow prevention ─────────────────────────────────────────── */
+html, body {
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* ── Navbar responsive breakpoints ──────────────────────────────── */
+
+/* WIDE DESKTOP (above 1024px): full nav, hamburger hidden */
+@media (min-width: 1025px) {
+  .desktop-nav {
+    display: flex !important;
+    gap: 24px;
+  }
+  .hamburger-btn {
+    display: none !important;
+  }
+}
+
+/* TABLET (641px – 1024px): tighter nav links, hamburger hidden */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .desktop-nav {
+    display: flex !important;
+    gap: 14px !important;
+  }
+  .hamburger-btn {
+    display: none !important;
+  }
+}
+
+/* MOBILE (640px and below): hide nav links, show hamburger */
+@media (max-width: 640px) {
+  .desktop-nav {
+    display: none !important;
+  }
+  .hamburger-btn {
+    display: flex !important;
+  }
+  .relic-logo-text {
+    display: none;
+  }
+}
+
