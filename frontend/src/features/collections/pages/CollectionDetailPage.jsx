@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { useParams, Link, useNavigate } from "react-router-dom";
 import itemService from "../../items/services/item.service";
 import ItemCard from "../../items/components/ItemCard";
+import CollectionGaps from "../components/CollectionGaps";
 
 const CollectionDetailPage = () => {
   const { id } = useParams();
+  const navigate = useNavigate();
 
   const [collection, setCollection] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [deleteState, setDeleteState] = useState('idle');
 
   useEffect(() => {
     let isMounted = true;
@@ -62,6 +65,17 @@ const CollectionDetailPage = () => {
     }
   };
 
+  const handleDelete = async () => {
+    setDeleteState('deleting');
+    try {
+      await itemService.deleteCollection(collection._id);
+      navigate('/collections');
+    } catch (err) {
+      console.error('delete failed:', err.message);
+      setDeleteState('idle');
+    }
+  };
+
   // LOADING STATE
   if (loading && !collection) {
     return (
@@ -101,13 +115,54 @@ const CollectionDetailPage = () => {
         {/* ======================= */}
         {/* BACK NAVIGATION */}
         {/* ======================= */}
-        <Link 
-          to="/collections"
-          className="text-[#666666] hover:text-white transition-colors duration-150 uppercase self-start mb-8 block" 
-          style={{ fontSize: "11px", letterSpacing: "0.08em" }}
-        >
-          ← COLLECTIONS
-        </Link>
+        <div className="flex justify-between items-center w-full mb-8">
+          <Link 
+            to="/collections"
+            className="text-[#666666] hover:text-white transition-colors duration-150 uppercase" 
+            style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
+          >
+            ← COLLECTIONS
+          </Link>
+
+          {collection?.type === 'manual' && (
+            <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+              {deleteState === 'idle' && (
+                <button 
+                  onClick={() => setDeleteState('confirming')}
+                  className="text-[#666666] hover:text-[#ff3333] transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
+                  style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
+                >
+                  DELETE
+                </button>
+              )}
+
+              {deleteState === 'confirming' && (
+                <>
+                  <button 
+                    onClick={handleDelete}
+                    className="text-[#ff3333] hover:text-white transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
+                    style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
+                  >
+                    CONFIRM DELETE
+                  </button>
+                  <button 
+                    onClick={() => setDeleteState('idle')}
+                    className="text-[#666666] hover:text-white transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
+                    style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
+                  >
+                    CANCEL
+                  </button>
+                </>
+              )}
+
+              {deleteState === 'deleting' && (
+                <span className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+                  DELETING...
+                </span>
+              )}
+            </div>
+          )}
+        </div>
         
         {/* ======================= */}
         {/* COLLECTION HEADER */}
@@ -171,6 +226,11 @@ const CollectionDetailPage = () => {
             ))}
           </div>
         )}
+
+        {/* ======================= */}
+        {/* YOU MIGHT ALSO WANT */}
+        {/* ======================= */}
+        <CollectionGaps collectionId={collection._id} />
 
       </div>
     </div>

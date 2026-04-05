@@ -8,25 +8,21 @@
   </head>
   <body>
     <div class="container">
-      <header class="header">
-        <span class="logo">⬡ Relic</span>
-      </header>
-
       <main class="form">
-        <div class="field">
-          <label for="title" class="label">Title</label>
-          <input
-            id="title"
-            type="text"
-            class="input"
-            placeholder="Name this item..."
-            autocomplete="off"
-          />
+        <!-- Auth Reminder -->
+        <div class="auth-reminder">
+          Make sure you are logged in before saving.
+          <a href="#" id="open-relic-btn" target="_blank" class="open-link">Open RELIC →</a>
         </div>
 
-        <div class="url-preview" id="url-preview">
-          <span class="url-label">URL</span>
-          <span class="url-text" id="url-text">Loading...</span>
+        <div class="field">
+          <label for="url-input" class="label">URL</label>
+          <input
+            id="url-input"
+            type="text"
+            class="input"
+            autocomplete="off"
+          />
         </div>
 
         <button id="save-btn" class="btn" disabled>Save</button>

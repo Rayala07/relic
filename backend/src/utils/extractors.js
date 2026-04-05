@@ -38,12 +38,17 @@ const http = axios.create({
 
 // ── Shared result normaliser ─────────────────────────────────────────────────
 // Always returns the same shape. Missing fields default to empty string.
-function normalise({ title = "", body = "", author = "", excerpt = "" } = {}) {
+function normalise({ title, body, author, excerpt } = {}) {
+  const safeTitle = (title || "").trim();
+  const safeBody = (body || "").replace(/\s+/g, " ").trim();
+  const safeAuthor = (author || "").trim();
+  const safeExcerpt = (excerpt || "").trim() || safeBody.slice(0, 300);
+
   return {
-    title:   title.trim(),
-    body:    body.replace(/\s+/g, " ").trim(),
-    author:  author.trim(),
-    excerpt: excerpt.trim() || body.replace(/\s+/g, " ").trim().slice(0, 300),
+    title: safeTitle,
+    body: safeBody,
+    author: safeAuthor,
+    excerpt: safeExcerpt,
   };
 }
 

@@ -189,12 +189,12 @@ const HomePage = () => {
 
         <div ref={featuresRef} className="grid grid-cols-1 md:grid-cols-2 gap-y-12 gap-x-6 w-full">
           {[
-            { tag: "SEMANTIC SEARCH", text: "Find items by meaning, not just exact keywords." },
-            { tag: "AI SUMMARIES", text: "Get the gist of any document instantly before opening." },
-            { tag: "AUTO TAGGING", text: "Zero manual organization. Everything is categorized for you." },
-            { tag: "SMART COLLECTIONS", text: "Related items are stitched together forming knowledge clusters." },
-            { tag: "MEMORY RESURFACING", text: "Never lose a link. Recall precisely how long ago you saved it." },
-            { tag: "KNOWLEDGE GRAPH", text: "Filter by distinct platforms parsing URLs directly." },
+            { tag: "SEMANTIC SEARCH", text: "Find anything you saved with natural language — not just keywords." },
+            { tag: "AI SUMMARIES", text: "Every saved item is summarized automatically. No reading required to remember." },
+            { tag: "AUTO TAGGING", text: "Topics are detected and tagged the moment you save. Zero manual effort." },
+            { tag: "SMART COLLECTIONS", text: "Your saves are grouped into collections automatically as you add more." },
+            { tag: "MEMORY RESURFACING", text: "Items you saved weeks ago come back when they are worth revisiting." },
+            { tag: "KNOWLEDGE GRAPH", text: "See how everything you saved connects to everything else visually." },
           ].map((feat, idx) => (
             <div key={idx} className="flex flex-col gap-2 feature-item" style={{ opacity: 0 }}>
               <h3 className="text-white uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500 }}>

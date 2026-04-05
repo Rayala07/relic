@@ -48,6 +48,10 @@ const itemService = {
     const response = await apiClient.get(`/collections/${id}`);
     return response.data;
   },
+  getCollectionGaps: async (id) => {
+    const response = await apiClient.get(`/collections/${id}/gaps`);
+    return response.data.data;
+  },
   createCollection: async (name, description) => {
     const response = await apiClient.post('/collections', { name, description });
     return response.data;

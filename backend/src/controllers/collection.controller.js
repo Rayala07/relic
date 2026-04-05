@@ -51,6 +51,7 @@ export const getCollectionById = async (req, res) => {
         url:               1,
         title:             1,
         type:              1,
+        createdAt:         1,
         "content.title":   1,
         "content.excerpt": 1,
         "ai.tags":         1,
@@ -171,5 +172,142 @@ export const deleteCollection = async (req, res) => {
     return res.json({ success: true, message: "Collection deleted" });
   } catch (err) {
     return res.status(500).json({ success: false, error: err.message });
+  }
+};
+
+/**
+ * Get Collection Gaps Controller
+ * Analyzes the tags of all items in a collection and suggests missing topics.
+ */
+import { Mistral } from "@mistralai/mistralai";
+const mistral = new Mistral({
+  apiKey: process.env.MISTRAL_API_KEY
+});
+
+export const getCollectionGaps = async (req, res) => {
+  if (!req.params.id.match(/^[a-f\d]{24}$/i)) {
+    return res.status(400).json({
+      success: false,
+      error: "Invalid collection id"
+    });
+  }
+
+  try {
+    const collection = await Collection
+      .findById(req.params.id)
+      .populate({
+        path: "items",
+        select: "ai.tags",
+      })
+      .lean();
+
+    if (!collection) {
+      return res.status(404).json({
+        success: false,
+        error: "Collection not found"
+      });
+    }
+
+    const allTags = [
+      ...new Set(
+        collection.items
+          .flatMap(item => item.ai?.tags || [])
+          .filter(tag =>
+            typeof tag === "string" && tag.trim().length > 0
+          )
+          .map(tag => tag.toLowerCase().trim())
+      )
+    ];
+
+    if (allTags.length < 2) {
+      return res.json({
+        success: true,
+        data: {
+          tags: allTags,
+          suggestions: [],
+          reason: "not_enough_tags"
+        }
+      });
+    }
+
+    const response = await mistral.chat.complete({
+      model: "mistral-small-latest",
+      messages: [
+        {
+          role: "system",
+          content: `You are a collection advisor.
+Given a list of tags from someone's saved items
+collection, suggest what related topics, items,
+or areas they might want to add to make their
+collection more complete.
+
+STRICT RULES:
+- Return ONLY a valid JSON array of strings
+- 3 to 5 suggestions maximum
+- Each suggestion: 2 to 5 words maximum
+- Be specific and practical — not generic
+- Match the domain of the tags exactly:
+  if tags are about fashion → suggest fashion items
+  if tags are about devops → suggest devops topics
+  if tags are about cooking → suggest cooking topics
+  if tags are about products → suggest related products
+- Do NOT return tags already in the list
+- Do NOT return generic suggestions like
+  "more research" or "additional resources"
+- Return ONLY the JSON array, no explanation,
+  no markdown, no text outside the array
+
+Example input tags: ["running", "marathon", "shoes"]
+Example output: ["trail running shoes",
+  "running nutrition", "injury prevention",
+  "foam rolling", "running socks"]`,
+        },
+        {
+          role: "user",
+          content: `My collection has items tagged with: ${allTags.join(", ")}. What might I want to also save?`,
+        },
+      ],
+      temperature: 0.4,
+      maxTokens: 150,
+    });
+
+    const raw = response.choices[0]?.message?.content?.trim();
+
+    if (!raw) {
+      return res.json({
+        success: true,
+        data: { tags: allTags, suggestions: [] }
+      });
+    }
+
+    let suggestions = [];
+    try {
+      const cleaned = raw.replace(/```json|```/g, "").trim();
+      const parsed = JSON.parse(cleaned);
+
+      if (Array.isArray(parsed)) {
+        suggestions = parsed
+          .filter(s => typeof s === "string" && s.trim().length > 0)
+          .map(s => s.trim())
+          .slice(0, 5);
+      }
+    } catch (parseErr) {
+      console.error("gaps parse error:", parseErr.message);
+    }
+
+    res.json({
+      success: true,
+      data: {
+        tags: allTags,
+        suggestions,
+      }
+    });
+
+  } catch (err) {
+    console.error("gaps endpoint error:", err.message);
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
   }
 };

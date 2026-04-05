@@ -4,25 +4,27 @@
  * Responsibilities:
  * 1. Capture the active tab URL and display it.
  * 2. Handle form submission by sending a message to background.js.
- *    (Background service worker makes the actual fetch so the browser
- *     automatically attaches the HttpOnly 'token' cookie via the
- *     extension's host_permissions grant — no manual cookie handling.)
  * 3. Reflect loading / success / error states in the UI.
  */
 
-const titleInput = document.getElementById("title");
-const urlText = document.getElementById("url-text");
+const openRelicBtn = document.getElementById("open-relic-btn");
+const urlInput = document.getElementById("url-input");
 const saveBtn = document.getElementById("save-btn");
 const statusEl = document.getElementById("status");
 
 let currentTabUrl = "";
 
+// The background script uses localhost:3000 for api. 
+// We point the UI link to the frontend server.
+const frontendUrl = "http://localhost:5173";
+openRelicBtn.href = frontendUrl;
+
 // ── 1. Capture active tab URL ────────────────────────────────────────────────
 async function initTabUrl() {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   currentTabUrl = tab?.url ?? "";
-  urlText.textContent = currentTabUrl || "Unable to read URL";
-  saveBtn.disabled = false;
+  urlInput.value = currentTabUrl;
+  saveBtn.disabled = !currentTabUrl;
 }
 
 initTabUrl();
@@ -35,51 +37,46 @@ function showStatus(message, type) {
 
 function setLoading(isLoading) {
   saveBtn.disabled = isLoading;
-  saveBtn.textContent = isLoading ? "Saving..." : "Save";
+  saveBtn.textContent = isLoading ? "SAVING..." : "SAVE";
+  if (isLoading) {
+    showStatus("LOADING", "loading");
+  } else {
+    statusEl.className = "status hidden";
+  }
 }
 
 // ── 3. Save handler ──────────────────────────────────────────────────────────
 saveBtn.addEventListener("click", async () => {
-  const title = titleInput.value.trim();
+  const url = urlInput.value.trim();
 
-  if (!title) {
-    showStatus("Please enter a title.", "error");
-    return;
-  }
-
-  if (!currentTabUrl) {
-    showStatus("Could not capture current tab URL.", "error");
+  if (!url) {
+    showStatus("PLEASE ENTER A URL.", "error");
     return;
   }
 
   setLoading(true);
-  statusEl.className = "status hidden";
 
-  // Delegate the API call to background.js (service worker).
-  // The service worker's fetch inherits the browser cookie jar for the target
-  // origin, so the HttpOnly 'token' cookie is sent automatically.
   const response = await chrome.runtime.sendMessage({
     type: "SAVE_ITEM",
     payload: {
-      title,
-      url: currentTabUrl,
+      title: "", // Empty title lets backend extraction layer grab semantic title natively 
+      url: url,
     },
   });
 
   setLoading(false);
 
   if (response.success) {
-    showStatus("✓ Saved successfully!", "success");
-    titleInput.value = "";
+    showStatus("✓ SAVED SUCCESSFULLY!", "success");
+    urlInput.value = "";
   } else {
-    // 401 → user is not logged in on the main site
     const isAuthError =
       response.status === 401 ||
       (response.message && response.message.toLowerCase().includes("auth"));
     showStatus(
       isAuthError
-        ? "Please log in on the website first."
-        : response.message || "Something went wrong. Try again.",
+        ? "PLEASE LOG IN ON THE WEBSITE FIRST."
+        : response.message || "SOMETHING WENT WRONG. TRY AGAIN.",
       "error"
     );
   }

@@ -30,6 +30,29 @@ const ItemDetailPage = () => {
   const [error, setError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  const CACHE_PREFIX = "relic_item_";
+
+  async function fetchItemWithCache(id) {
+    const cacheKey = CACHE_PREFIX + id;
+    try {
+      const cached = sessionStorage.getItem(cacheKey);
+      if (cached) {
+        const parsed = JSON.parse(cached);
+        if (parsed?._id && parsed?.content) {
+          return { success: true, data: parsed };
+        }
+      }
+    } catch (e) {}
+
+    const res = await itemService.getById(id);
+    if (res && res.success && res.data) {
+      try {
+        sessionStorage.setItem(cacheKey, JSON.stringify(res.data));
+      } catch (e) {}
+    }
+    return res;
+  }
+
   useEffect(() => {
     let isMounted = true;
     const loadData = async () => {
@@ -38,7 +61,7 @@ const ItemDetailPage = () => {
         setError(null);
 
         const [itemRes, relatedRes, resurfaceRes, collRes] = await Promise.all([
-          itemService.getById(id),
+          fetchItemWithCache(id),
           itemService.getRelated(id).catch(() => ({ success: true, count: 0, data: [] })),
           itemService.getResurfaced().catch(() => ({ success: true, count: 0, data: [] })),
           itemService.getCollections().catch(() => ({ success: true, count: 0, data: [] }))
