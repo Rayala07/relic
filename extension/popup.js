@@ -16,9 +16,9 @@ const statusEl = document.getElementById("status");
 let currentTabUrl = "";
 
 // ── CONFIGURATION ────────────────────────────────────────────────────────────
-// In production, change these to your live server URLs.
+
 const CONFIG = {
-  FRONTEND_URL: "http://localhost:5173",
+  FRONTEND_URL: "https://relic-gamma.vercel.app/",
 };
 
 openRelicBtn.href = CONFIG.FRONTEND_URL;
@@ -88,7 +88,7 @@ saveBtn.addEventListener("click", async () => {
       isAuthError
         ? "PLEASE LOG IN ON THE WEBSITE FIRST."
         : response.message || "SOMETHING WENT WRONG. TRY AGAIN.",
-      "error"
+      "error",
     );
   }
 });

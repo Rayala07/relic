@@ -24,7 +24,7 @@
 // ── CONFIGURATION ────────────────────────────────────────────────────────────
 // In production, change to your live API server URL.
 const CONFIG = {
-  API_BASE: "http://localhost:3000/api"
+  API_BASE: "https://relic-backend-q0f0.onrender.com/api"
 };
 
 const API_BASE = CONFIG.API_BASE;
