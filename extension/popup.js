@@ -15,10 +15,13 @@ const statusEl = document.getElementById("status");
 
 let currentTabUrl = "";
 
-// The background script uses localhost:3000 for api. 
-// We point the UI link to the frontend server.
-const frontendUrl = "http://localhost:5173";
-openRelicBtn.href = frontendUrl;
+// ── CONFIGURATION ────────────────────────────────────────────────────────────
+// In production, change these to your live server URLs.
+const CONFIG = {
+  FRONTEND_URL: "http://localhost:5173",
+};
+
+openRelicBtn.href = CONFIG.FRONTEND_URL;
 
 // ── 1. Capture active tab URL ────────────────────────────────────────────────
 async function initTabUrl() {

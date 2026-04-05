@@ -21,7 +21,13 @@
  *   Auth: HttpOnly cookie 'token' (set at login, sent automatically)
  */
 
-const API_BASE = "http://localhost:3000/api";
+// ── CONFIGURATION ────────────────────────────────────────────────────────────
+// In production, change to your live API server URL.
+const CONFIG = {
+  API_BASE: "http://localhost:3000/api"
+};
+
+const API_BASE = CONFIG.API_BASE;
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "SAVE_ITEM") {

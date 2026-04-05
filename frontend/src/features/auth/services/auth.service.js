@@ -1,8 +1,8 @@
 import axios from "axios";
 
-// Assuming backend rests at localhost:5000 based on standard express setups
-// Can adjust proxy later or user config
-const API_URL = "http://localhost:3000/api/auth";
+
+const BASE_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+const API_URL = `${BASE_URL}/auth`;
 
 const apiClient = axios.create({
   baseURL: API_URL,

@@ -15,7 +15,11 @@ import { getResurfacedItems } from "../utils/resurfacer.js";
  */
 export const getResurfaced = (req, res) => {
   try {
-    const items = getResurfacedItems();
+    const allItems = getResurfacedItems();
+
+    // STRICTLY FILTER BY req.userId
+    // The memory store holds global items across all users
+    const items = allItems.filter(i => i.item.user?.toString() === req.userId);
 
     // Format the response — label each item with
     // a human-readable string for the frontend
