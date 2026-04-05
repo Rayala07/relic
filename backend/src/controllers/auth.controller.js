@@ -41,10 +41,11 @@ export const register = async (req, res) => {
     // Generate payload and token
     const token = generateToken(user._id);
 
-    // Set cookie
+    // Set cookie — sameSite: 'none' is mandatory for cross-site (Vercel -> Render)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days in milliseconds
     });
 
@@ -108,10 +109,11 @@ export const login = async (req, res) => {
     // Generate token
     const token = generateToken(user._id);
 
-    // Set cookie
+    // Set cookie — sameSite: 'none' is mandatory for cross-site (Vercel -> Render)
     res.cookie("token", token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 10 * 24 * 60 * 60 * 1000, // 10 days in milliseconds
     });
 
