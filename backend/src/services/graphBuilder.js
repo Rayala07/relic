@@ -1,11 +1,14 @@
 import Item from '../models/item.model.js';
 import { findRelatedItems } from '../utils/pinecone.js';
 
-export async function buildGraph() {
+export async function buildGraph(userId) {
   // Step 1: fetch all done items — only fields needed
   // for the graph, never fetch ai.embedding
   const items = await Item.find(
-    { embeddingStatus: 'resolved' },
+    { 
+      embeddingStatus: 'resolved',
+      user: userId
+    },
     {
       url: 1,
       type: 1,

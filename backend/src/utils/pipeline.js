@@ -134,11 +134,6 @@ async function extractionPipeline(itemId) {
       console.error("autoOrganize failed silently:", err.message)
     );
 
-    // Fire and forget cache invalidation avoiding blocking boundaries heavily parsing safely
-    fetch(`http://localhost:${process.env.PORT || 3000}/api/graph/invalidate`, {
-      method: 'POST'
-    }).catch(() => {});
-
   } catch (err) {
     await Item.findByIdAndUpdate(itemId, { embeddingStatus: "failed" });
     console.error(

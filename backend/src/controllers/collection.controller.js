@@ -194,7 +194,7 @@ export const getCollectionGaps = async (req, res) => {
 
   try {
     const collection = await Collection
-      .findById(req.params.id)
+      .findOne({ _id: req.params.id, user: req.userId })
       .populate({
         path: "items",
         select: "ai.tags",

@@ -16,7 +16,10 @@ const app = express();
 app.use(express.json());
 app.use(
   cors({
-    origin: process.env.CLIENT_URL || process.env.FRONTEND_URL || "http://localhost:5173",
+    origin:
+      process.env.CLIENT_URL ||
+      process.env.FRONTEND_URL ||
+      "http://localhost:5173",
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
   }),
@@ -25,14 +28,14 @@ app.use(cookieParser());
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20,
-  message: { success: false, message: 'Too many attempts, try later' }
+  max: 30,
+  message: { success: false, message: "Too many attempts, try later" },
 });
 
 const aiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 30,
-  message: { success: false, message: 'Too many requests, slow down' }
+  message: { success: false, message: "Too many requests, slow down" },
 });
 
 app.get("/api/health", (req, res) => {
