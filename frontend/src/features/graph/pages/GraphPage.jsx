@@ -21,13 +21,6 @@ const GraphPage = () => {
       setData(graphData);
       setNodeCount(graphData.nodes.length);
       setEdgeCount(graphData.edges.length);
-
-      console.log('RAW GRAPH DATA:', JSON.stringify({
-        nodeCount: graphData?.nodes?.length,
-        edgeCount: graphData?.edges?.length,
-        node0: graphData?.nodes?.[0],
-        edge0: graphData?.edges?.[0],
-      }, null, 2));
     } catch (err) {
       setError(err.response?.data?.error || err.message || "Failed to load graph");
     } finally {

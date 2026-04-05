@@ -73,18 +73,6 @@ export default function ForceGraph({ nodes, edges, onNodeClick, onNodeHover }) {
         typeof e.target === 'object'
       );
 
-    // Add this log to confirm edges resolved correctly
-    console.log('SIMEDGES:', simEdges.length,
-      simEdges[0] ? JSON.stringify({
-        source: simEdges[0].source?.id,
-        target: simEdges[0].target?.id,
-        score: simEdges[0].score,
-      }) : 'NONE RESOLVED'
-    );
-    if (!simEdges[0]) {
-      console.log('nodeById keys (first 3):', [...nodeById.keys()].slice(0, 3));
-      console.log('edges[0] raw:', JSON.stringify(edges[0]));
-    }
 
     const simulation = d3.forceSimulation(simNodes)
       .force('link',
