@@ -3,7 +3,7 @@
 **Don't just surf the internet—curate it.**
 Relic is an intelligent, organized platform designed to help you capture, store, and discover the information that matters most to you.
 
-[🚀 **Live Demo**][https://relic-gamma.vercel.app/]
+[🚀 **Live Demo**](https://relic-gamma.vercel.app/)
 
 ## Overview
 
