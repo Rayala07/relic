@@ -73,13 +73,6 @@ const itemService = {
     return response.data.data;
   },
 
-  // ========================
-  // GRAPH ENDPOINTS
-  // ========================
-  getGraph: async () => {
-    const response = await apiClient.get('/graph');
-    return response.data.data;
-  }
 };
 
 export default itemService;

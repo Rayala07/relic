@@ -6,7 +6,6 @@ import itemRoutes from "./routes/item.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import resurfaceRouter from "./routes/resurface.routes.js";
-import graphRoutes from "./routes/graph.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
 import rateLimit from "express-rate-limit";
 import "dotenv/config";
@@ -67,7 +66,6 @@ app.use("/api/items", aiLimiter, itemRoutes);
 app.use("/api/search", aiLimiter, searchRoutes);
 app.use("/api/collections", aiLimiter, collectionRoutes);
 app.use("/api/resurface", resurfaceRouter);
-app.use("/api/graph", graphRoutes);
 app.use("/api/stats", statsRoutes);
 
 export default app;

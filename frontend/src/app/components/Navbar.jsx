@@ -56,7 +56,6 @@ const Navbar = () => {
     { name: "COLLECTIONS", path: "/collections" },
     { name: "SAVE", path: "/save" },
     { name: "SEARCH", path: "/search" },
-    { name: "GRAPH", path: "/graph" },
   ];
 
   const triggerLogout = async () => {
