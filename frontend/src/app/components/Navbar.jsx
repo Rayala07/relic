@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useAuth } from "../../features/auth/hooks/useAuth";
+import { useUser, useClerk } from "@clerk/clerk-react";
 
 const Navbar = () => {
   const { pathname } = useLocation();
-  const { user, isAuthLoading, handleLogout } = useAuth();
+  const { user, isLoaded } = useUser();
+  const { signOut } = useClerk();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -46,9 +47,9 @@ const Navbar = () => {
     return null;
   }
 
-  const initials = user?.name
-    ? user.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()
-    : user?.email?.substring(0, 2).toUpperCase() || '??';
+  const initials = user?.firstName
+    ? user.firstName[0].toUpperCase() + (user.lastName ? user.lastName[0].toUpperCase() : "")
+    : user?.primaryEmailAddress?.emailAddress?.substring(0, 2).toUpperCase() || '??';
 
   const navLinks = [
     { name: "HOME", path: "/" },
@@ -61,7 +62,7 @@ const Navbar = () => {
   const triggerLogout = async () => {
     setDropdownOpen(false);
     setMenuOpen(false);
-    await handleLogout();
+    await signOut();
   };
 
   const isLinkActive = (link) =>
@@ -118,7 +119,7 @@ const Navbar = () => {
         </div>
 
         {/* CENTER: Desktop nav links — hidden below 1024px */}
-        {!isAuthLoading && user && (
+        {isLoaded && user && (
           <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "24px", flexShrink: 1, minWidth: 0, overflow: "hidden" }}>
             {navLinks.map((link) => (
               <Link
@@ -138,7 +139,7 @@ const Navbar = () => {
         <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "12px" }}>
 
           {/* Hamburger — only visible below 1024px */}
-          {!isAuthLoading && user && (
+          {isLoaded && user && (
             <button
               className="hamburger-btn"
               onClick={() => setMenuOpen((prev) => !prev)}
@@ -190,7 +191,7 @@ const Navbar = () => {
 
           {/* Profile circle & dropdown */}
           <div className="profile-area" ref={dropdownRef} style={{ position: "relative", display: "flex", alignItems: "center" }}>
-            {isAuthLoading ? (
+            {!isLoaded ? (
               <div style={{ width: 32, height: 32, borderRadius: "50%", background: "transparent", border: "1px solid transparent" }} />
             ) : !user ? (
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>

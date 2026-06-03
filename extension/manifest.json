@@ -15,6 +15,7 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://localhost:3000/*"
+    "http://localhost:5000/*",
+    "https://relic-backend-q0f0.onrender.com/*"
   ]
 }

@@ -1,11 +1,11 @@
 import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { animate, inView, stagger } from "motion";
-import { useAuth } from "../../features/auth/hooks/useAuth";
+import { useUser } from "@clerk/clerk-react";
 import StatsBar from "../components/StatsBar";
 
 const HomePage = () => {
-  const { user, isAuthLoading } = useAuth();
+  const { user, isLoaded } = useUser();
   // Hero Refs
   const labelRef = useRef(null);
   const headline1Ref = useRef(null);
@@ -129,7 +129,7 @@ const HomePage = () => {
           </div>
 
           {/* YOUR RELIC stats — logged-in only, inside hero */}
-          {!isAuthLoading && user && (
+          {isLoaded && user && (
             <div className="mt-16 w-full">
               <StatsBar />
             </div>

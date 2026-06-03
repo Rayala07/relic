@@ -21,11 +21,17 @@ import axios from "axios";
 // ── Model setup ──────────────────────────────────────────────────────────────
 // ChatGoogleGenerativeAI is LangChain's wrapper for Gemini models.
 // It accepts both text and image inputs in the same message.
-const visionModel = new ChatGoogleGenerativeAI({
-  model: "gemini-1.5-flash",
-  apiKey: process.env.GEMINI_API_KEY,
-  temperature: 0.2, // low temperature = more consistent, factual descriptions
-});
+let _visionModel = null;
+function getVisionModel() {
+  if (!_visionModel) {
+    _visionModel = new ChatGoogleGenerativeAI({
+      model: "gemini-1.5-flash",
+      apiKey: process.env.GEMINI_API_KEY,
+      temperature: 0.2, // low temperature = more consistent, factual descriptions
+    });
+  }
+  return _visionModel;
+}
 
 /**
  * Describes an image and extracts searchable tags from it using Gemini.
@@ -80,7 +86,8 @@ Return only the JSON. No markdown fences, no explanation.`,
   });
 
   // Step 5: Invoke the model and parse the response
-  const aiResponse = await visionModel.invoke([message]);
+  const model = getVisionModel();
+  const aiResponse = await model.invoke([message]);
 
   // aiResponse.content is the raw string from Gemini
   // Strip any accidental markdown code fences just in case

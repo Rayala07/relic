@@ -1,12 +1,11 @@
+import "dotenv/config";
 import app from "./src/app.js";
 import connectToDB from "./src/config/database.js";
-import { connectToRedis } from "./src/config/redis.js";
 import { startResurfacerCron } from "./src/utils/resurfacer.js";
-import "dotenv/config";
 
 const REQUIRED_ENV_VARS = [
   'MONGO_URI',
-  'JWT_SECRET',
+  'CLERK_SECRET_KEY',
   'MISTRAL_API_KEY',
   'PINECONE_API_KEY',
   'PINECONE_INDEX',
@@ -31,7 +30,6 @@ app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
 
   await connectToDB();
-  await connectToRedis();
   startResurfacerCron();
 });
 

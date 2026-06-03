@@ -1,7 +1,6 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import authRoutes from "./routes/auth.routes.js";
 import itemRoutes from "./routes/item.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
@@ -61,7 +60,7 @@ app.get("/api/health", (req, res) => {
   res.status(200).json({ success: true, status: "ok" });
 });
 
-app.use("/api/auth", authLimiter, authRoutes);
+
 app.use("/api/items", aiLimiter, itemRoutes);
 app.use("/api/search", aiLimiter, searchRoutes);
 app.use("/api/collections", aiLimiter, collectionRoutes);

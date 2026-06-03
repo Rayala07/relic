@@ -1,12 +1,12 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@clerk/clerk-react";
 
 const withAuth = (WrappedComponent) => {
   return (props) => {
-    const { user, isAuthLoading } = useAuth();
+    const { isLoaded, isSignedIn } = useAuth();
 
-    if (isAuthLoading) {
+    if (!isLoaded) {
       // Show loading pattern using exactly the same Library page loader style
       return (
         <div className="min-h-screen bg-[#000000] flex items-center justify-center p-6" style={{ fontFamily: "system-ui, sans-serif" }}>
@@ -17,7 +17,7 @@ const withAuth = (WrappedComponent) => {
       );
     }
 
-    if (!user) {
+    if (!isSignedIn) {
       return <Navigate to="/login" replace />;
     }
 

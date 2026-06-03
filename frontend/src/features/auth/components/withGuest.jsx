@@ -1,17 +1,17 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { useAuth } from "@clerk/clerk-react";
 
 const withGuest = (WrappedComponent) => {
   return (props) => {
-    const { user, isAuthLoading } = useAuth();
+    const { isLoaded, isSignedIn } = useAuth();
 
-    if (isAuthLoading) {
+    if (!isLoaded) {
       // Do not flash anything during login state check as requested
       return null;
     }
 
-    if (user) {
+    if (isSignedIn) {
       return <Navigate to="/" replace />;
     }
 

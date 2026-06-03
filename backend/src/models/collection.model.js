@@ -35,7 +35,7 @@ const collectionSchema = new mongoose.Schema(
 
     // Owner of this collection — scoped to user
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "User",
       required: [true, "User reference is required"],
     },

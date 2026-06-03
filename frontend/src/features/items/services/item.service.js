@@ -4,7 +4,17 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
 
 const apiClient = axios.create({
   baseURL: API_URL,
-  withCredentials: true,
+});
+
+// Intercept all requests and attach the Clerk token dynamically
+apiClient.interceptors.request.use(async (config) => {
+  if (window.Clerk && window.Clerk.session) {
+    const token = await window.Clerk.session.getToken();
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+  }
+  return config;
 });
 
 const itemService = {

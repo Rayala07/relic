@@ -74,9 +74,9 @@ const itemSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    /** Owner of this item — sourced from JWT, never from client input */
+    /** Owner of this item — sourced from Clerk JWT */
     user: {
-      type: mongoose.Schema.Types.ObjectId,
+      type: String,
       ref: "User",
       required: [true, "User reference is required"],
     },

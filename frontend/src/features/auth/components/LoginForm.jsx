@@ -1,21 +1,51 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
+import { useSignIn } from "@clerk/clerk-react";
 
 const LoginForm = () => {
-  const { handleLogin, loading, error } = useAuth();
+  const { isLoaded, signIn, setActive } = useSignIn();
+  const navigate = useNavigate();
+  
   const [formData, setFormData] = useState({ email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(""); // clear error when typing
   };
 
   const onSubmit = async (e) => {
     e.preventDefault();
+    if (!isLoaded) return;
+
+    setLoading(true);
+    setError("");
+
     try {
-      await handleLogin(formData);
+      const result = await signIn.create({
+        identifier: formData.email,
+        password: formData.password,
+      });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        navigate("/");
+      } else {
+        // Handle other states like 2FA if enabled in Clerk dashboard
+        console.warn("Sign in incomplete:", result);
+        setError("Additional verification required. Check Clerk settings.");
+      }
     } catch (err) {
-      // Error handled natively by Redux/useAuth logic
+      console.error("Login Error:", err);
+      // Clerk errors usually come back in err.errors array
+      if (err.errors && err.errors.length > 0) {
+        setError(err.errors[0].message);
+      } else {
+        setError("Invalid email or password");
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,7 +82,7 @@ const LoginForm = () => {
             value={formData.email}
             onChange={handleChange}
             placeholder="enter your email"
-            disabled={loading}
+            disabled={loading || !isLoaded}
             className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
             style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
           />
@@ -70,7 +100,7 @@ const LoginForm = () => {
             value={formData.password}
             onChange={handleChange}
             placeholder="••••••••"
-            disabled={loading}
+            disabled={loading || !isLoaded}
             className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
             style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
           />
@@ -79,7 +109,7 @@ const LoginForm = () => {
         {/* SUBMIT BUTTON */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isLoaded}
           className="w-full mt-2 bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
           style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px", borderRadius: 0, border: "none", fontWeight: 500 }}
         >

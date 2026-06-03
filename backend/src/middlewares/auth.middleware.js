@@ -1,48 +1,61 @@
-import jwt from "jsonwebtoken";
-import redisClient from "../config/redis.js";
+import { ClerkExpressRequireAuth, createClerkClient } from "@clerk/clerk-sdk-node";
+import User from "../models/user.model.js";
 import "dotenv/config";
 
+const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
+
 /**
- * Middleware to verify JWT token and ensure it is not blacklisted.
- * Reads token from cookies ('token' key) or Authorization header (Bearer token).
- *
- * @param {import('express').Request} req - Express request object
- * @param {import('express').Response} res - Express response object
- * @param {import('express').NextFunction} next - Express next middleware function
+ * Just-In-Time (JIT) Provisioning Middleware.
+ * This runs after Clerk has verified the token.
+ * It checks if the Clerk user exists in our MongoDB. If not, it creates them.
  */
-export const verifyToken = async (req, res, next) => {
+const syncUserToDatabase = async (req, res, next) => {
   try {
-    const token = req.cookies?.token;
+    const clerkId = req.auth?.userId;
 
-    if (!token) {
-      return res
-        .status(401)
-        .json({ success: false, message: "Authentication required" });
+    if (!clerkId) {
+      return res.status(401).json({ success: false, message: "Authentication required" });
     }
 
-    // Check if token is in Redis blacklist
-    const isBlacklisted = await redisClient.get(`blacklist:${token}`);
-    if (isBlacklisted) {
-      return res.status(401).json({
-        success: false,
-        message: "Session expired or logged out. Please log in again.",
+    // Attach the clerkId to req.userId so all downstream controllers continue to work normally
+    req.userId = clerkId;
+
+    // Check if the user already exists in our MongoDB
+    const existingUser = await User.findById(clerkId);
+    
+    if (!existingUser) {
+      // User is new to our backend. Fetch their details from Clerk.
+      const clerkUser = await clerkClient.users.getUser(clerkId);
+      
+      const email = clerkUser.emailAddresses[0]?.emailAddress || "";
+      const name = clerkUser.firstName 
+        ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
+        : email.split("@")[0] || "Unknown User";
+
+      // Create them in our database using the Clerk ID as the primary key
+      await User.create({
+        _id: clerkId,
+        name,
+        email,
       });
+      
+      console.log(`[AUTH] JIT Provisioned new user: ${clerkId}`);
     }
-
-    // Verify token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    // Attach decoded user id and token string to the request
-    req.userId = decoded.userId;
-    req.token = token;
 
     next();
   } catch (error) {
-    if (error.name === "TokenExpiredError") {
-      return res
-        .status(401)
-        .json({ success: false, message: "Token has expired" });
-    }
-    return res.status(401).json({ success: false, message: "Invalid token" });
+    console.error("[AUTH] JIT Provisioning Error:", error);
+    return res.status(500).json({ success: false, message: "Internal server error during auth sync" });
   }
 };
+
+/**
+ * We export verifyToken as an array of middlewares.
+ * Express allows arrays of middlewares to be passed to routes.
+ * 1. ClerkExpressRequireAuth checks the Authorization Bearer token.
+ * 2. syncUserToDatabase ensures the user exists in MongoDB.
+ */
+export const verifyToken = [
+  ClerkExpressRequireAuth(),
+  syncUserToDatabase
+];

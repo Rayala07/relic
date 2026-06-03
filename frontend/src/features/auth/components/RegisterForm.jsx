@@ -1,23 +1,133 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
-import { useAuth } from "../hooks/useAuth";
+import { Link, useNavigate } from "react-router-dom";
+import { useSignUp } from "@clerk/clerk-react";
 
 const RegisterForm = () => {
-  const { handleRegister, loading, error } = useAuth();
+  const { isLoaded, signUp, setActive } = useSignUp();
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
+  const [loading, setLoading] = useState(false);
+  const [statusText, setStatusText] = useState("SIGN UP");
+  const [error, setError] = useState("");
+  
+  // OTP Verification State
+  const [pendingVerification, setPendingVerification] = useState(false);
+  const [code, setCode] = useState("");
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError("");
   };
 
-  const onSubmit = async (e) => {
+  const onRegister = async (e) => {
     e.preventDefault();
+    if (!isLoaded) return;
+
+    setLoading(true);
+    setStatusText("CREATING ACCOUNT...");
+    setError("");
+
     try {
-      await handleRegister(formData);
+      await signUp.create({
+        firstName: formData.name,
+        emailAddress: formData.email,
+        password: formData.password,
+      });
+
+      setStatusText("SENDING CODE...");
+      // Send the email verification code
+      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+
+      // Change the UI to show the OTP input
+      setPendingVerification(true);
     } catch (err) {
-      // Error handled natively by Redux/useAuth logic
+      console.error("Register Error:", err);
+      if (err.errors && err.errors.length > 0) {
+        setError(err.errors[0].message);
+      } else {
+        setError("Error creating account");
+      }
+      setStatusText("SIGN UP");
+    } finally {
+      setLoading(false);
     }
   };
+
+  const onVerify = async (e) => {
+    e.preventDefault();
+    if (!isLoaded) return;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const result = await signUp.attemptEmailAddressVerification({ code });
+
+      if (result.status === "complete") {
+        await setActive({ session: result.createdSessionId });
+        navigate("/");
+      } else {
+        console.warn("Verify incomplete:", result);
+        setError("Verification incomplete. Please check your code.");
+      }
+    } catch (err) {
+      console.error("Verify Error:", err);
+      if (err.errors && err.errors.length > 0) {
+        setError(err.errors[0].message);
+      } else {
+        setError("Invalid verification code");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (pendingVerification) {
+    return (
+      <div className="w-full flex flex-col gap-6">
+        <h2 className="text-[#666666] uppercase border-b border-[#1a1a1a] pb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          VERIFY EMAIL
+        </h2>
+        <p className="text-[#999999]" style={{ fontSize: "14px" }}>
+          We sent a verification code to <span className="text-white">{formData.email}</span>
+        </p>
+        
+        {error && (
+          <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            {error}
+          </p>
+        )}
+
+        <form onSubmit={onVerify} className="flex flex-col gap-6">
+          <div className="flex flex-col gap-2">
+            <label className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              VERIFICATION CODE
+            </label>
+            <input
+              type="text"
+              required
+              value={code}
+              onChange={(e) => { setCode(e.target.value); setError(""); }}
+              placeholder="enter 6-digit code"
+              disabled={loading}
+              className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
+              style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full mt-2 bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
+            style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px", borderRadius: 0, border: "none", fontWeight: 500 }}
+          >
+            {loading ? "VERIFYING..." : "VERIFY EMAIL"}
+          </button>
+        </form>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full flex flex-col gap-6">
@@ -38,7 +148,7 @@ const RegisterForm = () => {
       )}
 
       {/* FORM */}
-      <form onSubmit={onSubmit} className="flex flex-col gap-6">
+      <form onSubmit={onRegister} className="flex flex-col gap-6">
         
         {/* NAME INPUT */}
         <div className="flex flex-col gap-2">
@@ -52,7 +162,7 @@ const RegisterForm = () => {
             value={formData.name}
             onChange={handleChange}
             placeholder="your name"
-            disabled={loading}
+            disabled={loading || !isLoaded}
             className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
             style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
           />
@@ -70,7 +180,7 @@ const RegisterForm = () => {
             value={formData.email}
             onChange={handleChange}
             placeholder="enter your email"
-            disabled={loading}
+            disabled={loading || !isLoaded}
             className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
             style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
           />
@@ -88,7 +198,7 @@ const RegisterForm = () => {
             value={formData.password}
             onChange={handleChange}
             placeholder="••••••••"
-            disabled={loading}
+            disabled={loading || !isLoaded}
             className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
             style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
           />
@@ -97,11 +207,11 @@ const RegisterForm = () => {
         {/* SUBMIT BUTTON */}
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || !isLoaded}
           className="w-full mt-2 bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
           style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px", borderRadius: 0, border: "none", fontWeight: 500 }}
         >
-          {loading ? "CREATING ACCOUNT..." : "SIGN UP"}
+          {statusText}
         </button>
       </form>
 
