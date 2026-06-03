@@ -1,5 +1,4 @@
-import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
-import { HumanMessage } from "@langchain/core/messages";
+import { GoogleGenerativeAI } from "@google/generative-ai";
 import axios from "axios";
 
 /**
@@ -24,11 +23,8 @@ import axios from "axios";
 let _visionModel = null;
 function getVisionModel() {
   if (!_visionModel) {
-    _visionModel = new ChatGoogleGenerativeAI({
-      model: "gemini-1.5-flash",
-      apiKey: process.env.GEMINI_API_KEY,
-      temperature: 0.2, // low temperature = more consistent, factual descriptions
-    });
+    const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+    _visionModel = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
   }
   return _visionModel;
 }
@@ -58,14 +54,8 @@ export async function describeImage(imageUrl) {
   // Step 3: Convert raw bytes → base64 string
   const base64Data = Buffer.from(response.data).toString("base64");
 
-  // Step 4: Build the LangChain HumanMessage
-  // LangChain's multi-modal format: an array of content parts —
-  // one text part (the prompt) and one image_url part (the image data)
-  const message = new HumanMessage({
-    content: [
-      {
-        type: "text",
-        text: `You are analyzing an image that a user saved to their personal knowledge base.
+  // Step 4: Build the native Google AI request
+  const prompt = `You are analyzing an image that a user saved to their personal knowledge base.
 
 Return a JSON object with exactly these fields:
 {
@@ -73,25 +63,21 @@ Return a JSON object with exactly these fields:
   "description": "2-3 sentence description of what this image shows — be specific about objects, colors, mood, style, and context"
 }
 
-Return only the JSON. No markdown fences, no explanation.`,
-      },
-      {
-        type: "image_url",
-        image_url: {
-          // LangChain / Gemini accepts base64 inline via data URI format
-          url: `data:${mimeType};base64,${base64Data}`,
-        },
-      },
-    ],
-  });
+Return only the JSON. No markdown fences, no explanation.`;
+
+  const imagePart = {
+    inlineData: {
+      data: base64Data,
+      mimeType
+    }
+  };
 
   // Step 5: Invoke the model and parse the response
   const model = getVisionModel();
-  const aiResponse = await model.invoke([message]);
+  const result = await model.generateContent([prompt, imagePart]);
+  const aiResponse = result.response.text();
 
-  // aiResponse.content is the raw string from Gemini
-  // Strip any accidental markdown code fences just in case
-  const raw = aiResponse.content.trim();
+  const raw = aiResponse.trim();
   const cleaned = raw.replace(/^```(?:json)?\n?/, "").replace(/\n?```$/, "");
 
   const parsed = JSON.parse(cleaned);

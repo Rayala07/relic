@@ -1,27 +1,42 @@
-import { RecursiveCharacterTextSplitter } from "@langchain/textsplitters";
-
-// 1000 chars ≈ 200 words — sits cleanly in the 200-300 word target range.
-// 150 char overlap ≈ 30 words — enough to preserve sentence continuity across chunks.
-// Separators are tried in order: paragraph break → line break → sentence → word.
-const splitter = new RecursiveCharacterTextSplitter({
-  chunkSize: 1000,
-  chunkOverlap: 150,
-  separators: ["\n\n", "\n", ". ", " "],
-});
-
 /**
- * Splits body text into overlapping chunks suitable for embedding.
- * Uses RecursiveCharacterTextSplitter, which respects natural content boundaries
- * (paragraphs first, then sentences, then words — never splits mid-word).
- *
- * @param {string} text - The body text to split (should be English at this point)
- * @returns {Promise<string[]>} - Array of text chunks, each ~200 words
+ * Custom text chunking algorithm.
+ * Splits long text into smaller chunks for vector embeddings,
+ * attempting to break at natural boundaries like paragraphs or sentences.
+ * 
+ * @param {string} text - The text to chunk
+ * @param {number} size - Target chunk size in characters
+ * @param {number} overlap - Overlap between chunks in characters
+ * @returns {string[]} Array of text chunks
  */
-export async function chunkText(text) {
-  if (!text || text.trim().length === 0) return [];
+export function chunkText(text, size = 1000, overlap = 150) {
+  if (!text?.trim()) return [];
+  const separators = ["\n\n", "\n", ". ", " "];
+  const chunks = [];
+  let start = 0;
 
-  const chunks = await splitter.splitText(text);
-
-  // Drop chunks too short to carry semantic meaning (< 5 words)
-  return chunks.filter((c) => c.trim().split(/\s+/).length > 5);
+  while (start < text.length) {
+    let end = Math.min(start + size, text.length);
+    
+    if (end < text.length) {
+      for (const sep of separators) {
+        const boundary = text.lastIndexOf(sep, end);
+        // If we found a boundary that's past our start + overlap window, use it
+        if (boundary > start + overlap) { 
+          end = boundary + sep.length; 
+          break; 
+        }
+      }
+    }
+    
+    const chunk = text.slice(start, end).trim();
+    // Only push chunks that actually have content (more than 5 words)
+    if (chunk.split(/\s+/).length > 5) {
+      chunks.push(chunk);
+    }
+    
+    // Advance start, keeping the overlap
+    start = end - overlap;
+  }
+  
+  return chunks;
 }
