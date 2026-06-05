@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
+import { ModeToggle } from "../../components/ModeToggle";
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -71,7 +72,7 @@ const Navbar = () => {
   const linkStyle = (active) => ({
     fontSize: "11px",
     letterSpacing: "0.08em",
-    color: active ? "#ffffff" : "#666666",
+    color: active ? "var(--foreground)" : "var(--muted-foreground)",
     textTransform: "uppercase",
     textDecoration: "none",
     transition: "color 0.15s",
@@ -89,8 +90,8 @@ const Navbar = () => {
           left: 0,
           right: 0,
           height: "72px",
-          background: "#000000",
-          borderBottom: "1px solid #1a1a1a",
+          background: "var(--background)",
+          borderBottom: "1px solid var(--border)",
           zIndex: 50,
           display: "flex",
           alignItems: "center",
@@ -111,7 +112,7 @@ const Navbar = () => {
             />
             <span
               className="relic-logo-text"
-              style={{ color: "#ffffff", fontSize: "16px", letterSpacing: "0.08em", fontWeight: 600, whiteSpace: "nowrap" }}
+              style={{ color: "var(--foreground)", fontSize: "16px", letterSpacing: "0.08em", fontWeight: 600, whiteSpace: "nowrap" }}
             >
               Relic
             </span>
@@ -121,13 +122,15 @@ const Navbar = () => {
         {/* CENTER: Desktop nav links — hidden below 1024px */}
         {isLoaded && user && (
           <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "24px", flexShrink: 1, minWidth: 0, overflow: "hidden" }}>
+            <ModeToggle />
+            <div style={{ width: "1px", height: "16px", background: "var(--border)" }}></div>
             {navLinks.map((link) => (
               <Link
                 key={link.name}
                 to={link.path}
                 style={linkStyle(isLinkActive(link))}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "#ffffff"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = isLinkActive(link) ? "#ffffff" : "#666666"; }}
+                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--foreground)"; }}
+                onMouseLeave={(e) => { e.currentTarget.style.color = isLinkActive(link) ? "var(--foreground)" : "var(--muted-foreground)"; }}
               >
                 {link.name}
               </Link>
@@ -161,7 +164,7 @@ const Navbar = () => {
                   display: "block",
                   width: 18,
                   height: 1,
-                  background: "#ffffff",
+                  background: "var(--foreground)",
                   transition: "transform 0.2s ease, opacity 0.2s ease",
                   transform: menuOpen ? "translateY(5px) rotate(45deg)" : "none",
                 }}
@@ -171,7 +174,7 @@ const Navbar = () => {
                   display: "block",
                   width: 18,
                   height: 1,
-                  background: "#ffffff",
+                  background: "var(--foreground)",
                   transition: "opacity 0.2s ease",
                   opacity: menuOpen ? 0 : 1,
                 }}
@@ -181,7 +184,7 @@ const Navbar = () => {
                   display: "block",
                   width: 18,
                   height: 1,
-                  background: "#ffffff",
+                  background: "var(--foreground)",
                   transition: "transform 0.2s ease, opacity 0.2s ease",
                   transform: menuOpen ? "translateY(-5px) rotate(-45deg)" : "none",
                 }}
@@ -195,12 +198,12 @@ const Navbar = () => {
               <div style={{ width: 32, height: 32, borderRadius: "50%", background: "transparent", border: "1px solid transparent" }} />
             ) : !user ? (
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <Link to="/login" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color="#ffffff"} onMouseLeave={e => e.currentTarget.style.color="#666666"}>LOGIN</Link>
+                <Link to="/login" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color="var(--foreground)"} onMouseLeave={e => e.currentTarget.style.color="var(--muted-foreground)"}>LOGIN</Link>
                 <Link
                   to="/register"
-                  style={{ background: "#ffffff", color: "#000000", padding: "8px 16px", fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500, textTransform: "uppercase", textDecoration: "none", transition: "background 0.15s", whiteSpace: "nowrap" }}
-                  onMouseEnter={e => e.currentTarget.style.background="#e0e0e0"}
-                  onMouseLeave={e => e.currentTarget.style.background="#ffffff"}
+                  style={{ background: "var(--foreground)", color: "var(--background)", padding: "8px 16px", fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500, textTransform: "uppercase", textDecoration: "none", transition: "background 0.15s", whiteSpace: "nowrap" }}
+                  onMouseEnter={e => e.currentTarget.style.background="var(--accent)"}
+                  onMouseLeave={e => e.currentTarget.style.background="var(--foreground)"}
                 >
                   SIGN UP
                 </Link>
@@ -211,12 +214,12 @@ const Navbar = () => {
                   onClick={() => setDropdownOpen((prev) => !prev)}
                   style={{
                     width: 32, height: 32, borderRadius: "50%",
-                    background: "#0a0a0a", border: "1px solid #1a1a1a",
+                    background: "var(--background)", border: "1px solid var(--border)",
                     display: "flex", alignItems: "center", justifyContent: "center",
                     cursor: "pointer", outline: "none", flexShrink: 0,
                   }}
                 >
-                  <span style={{ color: "#666666", fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <span style={{ color: "var(--muted-foreground)", fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                     {initials}
                   </span>
                 </button>
@@ -225,7 +228,7 @@ const Navbar = () => {
                   <div
                     style={{
                       position: "absolute", top: "40px", right: 0, marginTop: "8px",
-                      background: "#0a0a0a", border: "1px solid #1a1a1a",
+                      background: "var(--background)", border: "1px solid var(--border)",
                       paddingTop: "8px", paddingBottom: "8px", minWidth: "120px",
                       display: "flex", flexDirection: "column", zIndex: 60,
                       borderRadius: 0,
@@ -236,11 +239,11 @@ const Navbar = () => {
                       style={{
                         width: "100%", textAlign: "left", padding: "8px 16px",
                         fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase",
-                        color: "#666666", background: "transparent", border: "none",
+                        color: "var(--muted-foreground)", background: "transparent", border: "none",
                         cursor: "pointer", transition: "color 0.15s",
                       }}
-                      onMouseEnter={e => { e.currentTarget.style.color="#ffffff"; e.currentTarget.style.background="#111111"; }}
-                      onMouseLeave={e => { e.currentTarget.style.color="#666666"; e.currentTarget.style.background="transparent"; }}
+                      onMouseEnter={e => { e.currentTarget.style.color="var(--foreground)"; e.currentTarget.style.background="var(--accent)"; }}
+                      onMouseLeave={e => { e.currentTarget.style.color="var(--muted-foreground)"; e.currentTarget.style.background="transparent"; }}
                     >
                       LOGOUT
                     </button>
@@ -260,8 +263,8 @@ const Navbar = () => {
             top: "72px",
             left: 0,
             right: 0,
-            background: "#000000",
-            borderBottom: "1px solid #1a1a1a",
+            background: "var(--background)",
+            borderBottom: "1px solid var(--border)",
             zIndex: 49,
             padding: "0 24px",
           }}
@@ -279,18 +282,22 @@ const Navbar = () => {
                   fontSize: "11px",
                   letterSpacing: "0.08em",
                   textTransform: "uppercase",
-                  color: active ? "#ffffff" : "#666666",
+                  color: active ? "var(--foreground)" : "var(--muted-foreground)",
                   textDecoration: "none",
-                  borderBottom: idx < navLinks.length - 1 ? "1px solid #1a1a1a" : "none",
+                  borderBottom: idx < navLinks.length - 1 ? "1px solid var(--border)" : "none",
                   transition: "color 0.15s",
                 }}
-                onMouseEnter={e => e.currentTarget.style.color="#ffffff"}
-                onMouseLeave={e => e.currentTarget.style.color= active ? "#ffffff" : "#666666"}
+                onMouseEnter={e => e.currentTarget.style.color="var(--foreground)"}
+                onMouseLeave={e => e.currentTarget.style.color= active ? "var(--foreground)" : "var(--muted-foreground)"}
               >
                 {link.name}
               </Link>
             );
           })}
+          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0" }}>
+            <span style={{ fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>THEME</span>
+            <ModeToggle />
+          </div>
         </div>
       )}
     </div>

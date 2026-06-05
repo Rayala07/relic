@@ -54,12 +54,12 @@ const ItemCard = ({ item, onDelete }) => {
   return (
     <Link
       to={`/items/${_id}`}
-      className="block w-full border border-[#1a1a1a] p-5 hover:border-white transition-colors duration-150 flex flex-col gap-4 group"
+      className="block w-full border border-border p-5 hover:border-foreground transition-colors duration-150 flex flex-col gap-4 group"
       style={{ borderRadius: 0, opacity: isDeleting ? 0.5 : 1 }}
     >
       {/* 1. TYPE INDICATOR + DATE ROW */}
       <div
-        className="flex items-center justify-between text-[#666666] uppercase"
+        className="flex items-center justify-between text-muted-foreground uppercase"
         style={{ fontSize: "11px", letterSpacing: "0.08em" }}
       >
         <span>{displayType}</span>
@@ -68,7 +68,7 @@ const ItemCard = ({ item, onDelete }) => {
             type="button"
             onClick={handleDelete}
             disabled={isDeleting}
-            className="opacity-0 group-hover:opacity-100 text-[#666666] hover:text-[#ff3333] transition-all duration-150 disabled:opacity-0 cursor-pointer"
+            className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all duration-150 disabled:opacity-0 cursor-pointer"
             aria-label="Delete item"
           >
             <RiDeleteBin4Fill size={14} />
@@ -79,7 +79,7 @@ const ItemCard = ({ item, onDelete }) => {
 
       {/* 2. TITLE */}
       <h3
-        className="text-white line-clamp-2 leading-tight"
+        className="text-foreground line-clamp-2 leading-tight"
         style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 500 }}
       >
         {title}
@@ -88,7 +88,7 @@ const ItemCard = ({ item, onDelete }) => {
       {/* 3. SUMMARY */}
       {summary && (
         <p
-          className="text-[#666666] line-clamp-3 leading-relaxed"
+          className="text-muted-foreground line-clamp-3 leading-relaxed"
           style={{ fontSize: "14px", letterSpacing: "0.01em" }}
         >
           {summary}
@@ -101,7 +101,7 @@ const ItemCard = ({ item, onDelete }) => {
           {displayTags.map((tag, idx) => (
             <span
               key={idx}
-              className="border border-[#1a1a1a] text-[#666666] uppercase group-hover:border-[#333333] transition-colors duration-150"
+              className="border border-border text-muted-foreground uppercase group-hover:border-muted-foreground transition-colors duration-150"
               style={{
                 fontSize: "11px",
                 letterSpacing: "0.08em",
@@ -114,7 +114,7 @@ const ItemCard = ({ item, onDelete }) => {
           ))}
           {extraTagsCount > 0 && (
             <span
-              className="border border-[#1a1a1a] text-[#666666] uppercase group-hover:border-[#333333] transition-colors duration-150"
+              className="border border-border text-muted-foreground uppercase group-hover:border-muted-foreground transition-colors duration-150"
               style={{
                 fontSize: "11px",
                 letterSpacing: "0.08em",

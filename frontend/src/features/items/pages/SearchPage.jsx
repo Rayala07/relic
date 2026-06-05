@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useSearchParams } from "react-router-dom";
 import itemService from "../services/item.service";
 import ItemCard from "../components/ItemCard";
+import SkeletonGrid from "../../../components/ui/SkeletonGrid";
 
 const SearchPage = () => {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -47,10 +48,10 @@ const SearchPage = () => {
   }, [query, setSearchParams]);
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[calc(100vh-72px)] bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
       <div className="shared-container w-full flex flex-col items-center">
-        <div className="w-full flex flex-col mb-8 pb-8 border-b border-[#1a1a1a]">
-          <label className="text-[#666666] mb-2 uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+        <div className="w-full flex flex-col mb-8 pb-8 border-b border-border">
+          <label className="text-muted-foreground mb-2 uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             SEARCH
           </label>
           <input
@@ -58,13 +59,13 @@ const SearchPage = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             placeholder="Use relatable context to perform search, we will fetch related items for you."
-            className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150"
+            className="w-full bg-background text-foreground border-0 border-b border-border focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150"
             style={{
               fontSize: "14px",
               letterSpacing: "0.01em",
               borderRadius: 0,
-              color: "#ffffff",
-              caretColor: "#ffffff",
+              color: "var(--foreground)",
+              caretcolor: "var(--foreground)",
             }}
           />
         </div>
@@ -79,17 +80,13 @@ const SearchPage = () => {
 
           {/* STATE 2: SEARCHING */}
           {status === "searching" && (
-            <div className="flex justify-center mt-12 w-full">
-              <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
-                LOADING
-              </p>
-            </div>
+            <SkeletonGrid count={3} />
           )}
 
           {/* STATE 3: DONE (RESULTS) */}
           {status === "done" && results && results.length > 0 && (
             <div className="w-full flex flex-col gap-6">
-              <span className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 {results.length} RESULTS
               </span>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 w-full">
@@ -107,10 +104,10 @@ const SearchPage = () => {
           {/* STATE 4: DONE (EMPTY) */}
           {status === "done" && results && results.length === 0 && (
             <div className="text-center mt-20 flex flex-col items-center gap-4 w-full">
-              <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 no results for that search
               </p>
-              <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 try different keywords
               </p>
             </div>
@@ -119,7 +116,7 @@ const SearchPage = () => {
           {/* STATE 5: ERROR */}
           {status === "error" && (
             <div className="text-center mt-20 w-full">
-              <p className="text-[#ff3333] mb-6 uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              <p className="text-destructive mb-6 uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 search failed — try again
               </p>
             </div>

@@ -18,7 +18,7 @@ const LayoutWrapper = () => {
   const isAuthPage = pathname === "/login" || pathname === "/register";
 
   return (
-    <div className="min-h-screen bg-[#000000]">
+    <div className="min-h-screen bg-background">
       <Navbar />
       <div className={isAuthPage ? "" : "pt-[72px]"}>
         <Outlet />

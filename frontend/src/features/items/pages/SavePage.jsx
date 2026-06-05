@@ -33,7 +33,7 @@ const InputBlock = ({ labelText, prefillUrl = "", onSubmitData, isLoading }) => 
       {/* Optional Top Label */}
       {labelText && (
         <p
-          className="text-[#666666] mb-2 uppercase"
+          className="text-muted-foreground mb-2 uppercase"
           style={{ fontSize: "11px", letterSpacing: "0.08em" }}
         >
           {labelText}
@@ -51,20 +51,20 @@ const InputBlock = ({ labelText, prefillUrl = "", onSubmitData, isLoading }) => 
         placeholder="Attach a URL"
         autoFocus
         disabled={isLoading}
-        className="w-full bg-[#0a0a0a] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
+        className="w-full bg-background text-foreground border-0 border-b border-border focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
         style={{
           fontSize: "14px",
           letterSpacing: "0.01em",
           borderRadius: 0,
-          color: "#ffffff",
-          caretColor: "#ffffff",
+          color: "var(--foreground)",
+          caretcolor: "var(--foreground)",
         }}
       />
       
       {/* URL Validation Error */}
       {urlError && (
         <p
-          className="text-[#ff3333] uppercase"
+          className="text-destructive uppercase"
           style={{ fontSize: "11px", letterSpacing: "0.08em" }}
         >
           {urlError}
@@ -78,13 +78,13 @@ const InputBlock = ({ labelText, prefillUrl = "", onSubmitData, isLoading }) => 
         onChange={(e) => setLocalTitle(e.target.value)}
         placeholder="Title"
         disabled={isLoading}
-        className="w-full bg-[#0a0a0a] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
+        className="w-full bg-background text-foreground border-0 border-b border-border focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
         style={{
           fontSize: "14px",
           letterSpacing: "0.01em",
           borderRadius: 0,
-          color: "#ffffff",
-          caretColor: "#ffffff",
+          color: "var(--foreground)",
+          caretcolor: "var(--foreground)",
         }}
       />
 
@@ -92,7 +92,7 @@ const InputBlock = ({ labelText, prefillUrl = "", onSubmitData, isLoading }) => 
       <button
         type="submit"
         disabled={isLoading}
-        className="w-full mt-2 bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
+        className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
         style={{
           fontSize: "11px",
           letterSpacing: "0.08em",
@@ -132,7 +132,7 @@ const SavePage = () => {
 
   return (
     <div
-      className="min-h-[calc(100vh-72px)] bg-[#000000] flex items-center justify-center px-6"
+      className="min-h-[calc(100vh-72px)] bg-background flex items-center justify-center px-6"
       style={{ fontFamily: "system-ui, sans-serif" }}
     >
       <div className="w-full" style={{ maxWidth: "480px" }}>
@@ -146,7 +146,7 @@ const SavePage = () => {
               isLoading={loading}
             />
             <p
-              className="mt-4 text-[#333333] text-center uppercase"
+              className="mt-4 text-muted-foreground text-center uppercase"
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               supports webpages, pdfs, youtube, twitter
@@ -158,7 +158,7 @@ const SavePage = () => {
         {pageState === "done" && (
           <>
             <p
-              className="text-[#666666] mb-3 uppercase"
+              className="text-muted-foreground mb-3 uppercase"
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               SAVED
@@ -167,7 +167,7 @@ const SavePage = () => {
             {savedItem && (
               <>
                 <p
-                  className="text-white mb-4 line-clamp-1"
+                  className="text-foreground mb-4 line-clamp-1"
                   style={{ fontSize: "14px", letterSpacing: "0.01em" }}
                 >
                   {savedItem.title || savedItem.content?.title || submittedUrl}
@@ -175,7 +175,7 @@ const SavePage = () => {
                 {savedItem._id && (
                   <Link
                     to={`/items/${savedItem._id}`}
-                    className="text-[#666666] hover:text-white transition-colors duration-150 uppercase"
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase"
                     style={{ fontSize: "11px", letterSpacing: "0.08em" }}
                   >
                     view item →
@@ -185,7 +185,7 @@ const SavePage = () => {
             )}
 
             {/* Render a fresh form to immediately save another context */}
-            <div className="mt-12 pt-8 border-t border-[#1a1a1a]">
+            <div className="mt-12 pt-8 border-t border-border">
               <InputBlock
                 labelText="SAVE ANOTHER"
                 isLoading={loading}
@@ -202,7 +202,7 @@ const SavePage = () => {
         {pageState === "error" && (
           <>
             <p
-              className="text-[#ff3333] mb-8 uppercase"
+              className="text-destructive mb-8 uppercase"
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               {apiError || "failed to save — try again"}

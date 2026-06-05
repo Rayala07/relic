@@ -3,6 +3,8 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import itemService from "../../items/services/item.service";
 import ItemCard from "../../items/components/ItemCard";
 import CollectionGaps from "../components/CollectionGaps";
+import SkeletonGrid from "../../../components/ui/SkeletonGrid";
+import { Skeleton } from "../../../components/ui/skeleton";
 
 const CollectionDetailPage = () => {
   const { id } = useParams();
@@ -79,10 +81,25 @@ const CollectionDetailPage = () => {
   // LOADING STATE
   if (loading && !collection) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex items-center justify-center p-6">
-        <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
-          LOADING
-        </p>
+      <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+        <div className="shared-container w-full flex flex-col px-6">
+          <div className="flex justify-between items-center w-full mb-8">
+            <Skeleton className="h-3 w-24 bg-secondary" style={{ borderRadius: 0 }} />
+          </div>
+          
+          <div className="flex flex-col mb-8 w-full gap-4">
+            <div className="flex items-center justify-between mb-2">
+              <Skeleton className="h-3 w-16 bg-secondary" style={{ borderRadius: 0 }} />
+              <Skeleton className="h-3 w-16 bg-secondary" style={{ borderRadius: 0 }} />
+            </div>
+            <Skeleton className="h-6 w-3/4 bg-secondary" style={{ borderRadius: 0 }} />
+            <Skeleton className="h-4 w-1/2 bg-secondary mt-2" style={{ borderRadius: 0 }} />
+          </div>
+
+          <div className="w-full border-b border-border mb-12"></div>
+
+          <SkeletonGrid count={6} />
+        </div>
       </div>
     );
   }
@@ -90,13 +107,13 @@ const CollectionDetailPage = () => {
   // ERROR STATE
   if (error && !collection) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex flex-col items-center justify-center p-6 gap-6">
-        <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+      <div className="min-h-[calc(100vh-72px)] bg-background flex flex-col items-center justify-center p-6 gap-6">
+        <p className="text-destructive uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           {error}
         </p>
         <button 
           onClick={loadCollection}
-          className="bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 uppercase cursor-pointer" 
+          className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 uppercase cursor-pointer" 
           style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px 28px", fontWeight: 500, borderRadius: 0, border: "none" }}
         >
           RETRY
@@ -109,7 +126,7 @@ const CollectionDetailPage = () => {
   const safeItems = Array.isArray(items) ? items : [];
 
   return (
-    <div className="min-h-[calc(100vh-72px)] w-full bg-[#000000] flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
       <div className="shared-container w-full flex flex-col px-6">
         
         {/* ======================= */}
@@ -118,7 +135,7 @@ const CollectionDetailPage = () => {
         <div className="flex justify-between items-center w-full mb-8">
           <Link 
             to="/collections"
-            className="text-[#666666] hover:text-white transition-colors duration-150 uppercase" 
+            className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase" 
             style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
           >
             ← COLLECTIONS
@@ -129,7 +146,7 @@ const CollectionDetailPage = () => {
               {deleteState === 'idle' && (
                 <button 
                   onClick={() => setDeleteState('confirming')}
-                  className="text-[#666666] hover:text-[#ff3333] transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
+                  className="text-muted-foreground hover:text-destructive transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
                   style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
                 >
                   DELETE
@@ -140,14 +157,14 @@ const CollectionDetailPage = () => {
                 <>
                   <button 
                     onClick={handleDelete}
-                    className="text-[#ff3333] hover:text-white transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
+                    className="text-destructive hover:text-foreground transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
                     style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
                   >
                     CONFIRM DELETE
                   </button>
                   <button 
                     onClick={() => setDeleteState('idle')}
-                    className="text-[#666666] hover:text-white transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
+                    className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase bg-transparent border-none cursor-pointer"
                     style={{ fontSize: "11px", letterSpacing: "0.08em", padding: 0 }}
                   >
                     CANCEL
@@ -156,7 +173,7 @@ const CollectionDetailPage = () => {
               )}
 
               {deleteState === 'deleting' && (
-                <span className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+                <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                   DELETING...
                 </span>
               )}
@@ -168,31 +185,31 @@ const CollectionDetailPage = () => {
         {/* COLLECTION HEADER */}
         {/* ======================= */}
         <div className="flex flex-col mb-8 w-full">
-          <div className="flex items-center justify-between text-[#666666] uppercase mb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          <div className="flex items-center justify-between text-muted-foreground uppercase mb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             <span>{type === "auto" ? "AUTO" : "MANUAL"}</span>
             <span>{safeItems.length === 1 ? "1 ITEM" : `${safeItems.length} ITEMS`}</span>
           </div>
 
-          <h1 className="text-white leading-snug w-full" style={{ fontSize: "20px", letterSpacing: "0.01em", fontWeight: 500 }}>
+          <h1 className="text-foreground leading-snug w-full" style={{ fontSize: "20px", letterSpacing: "0.01em", fontWeight: 500 }}>
             {name}
           </h1>
 
           {description && (
-            <p className="text-[#666666] mt-3" style={{ fontSize: "14px", letterSpacing: "0.01em" }}>
+            <p className="text-muted-foreground mt-3" style={{ fontSize: "14px", letterSpacing: "0.01em" }}>
               {description}
             </p>
           )}
 
           {type === "auto" && Array.isArray(sourceTags) && sourceTags.length > 0 && (
             <div className="flex flex-col gap-3 mt-6">
-              <span className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 ORGANIZED AROUND
               </span>
               <div className="flex flex-wrap gap-2">
                 {sourceTags.map((tag, idx) => (
                   <span
                     key={idx}
-                    className="border border-[#1a1a1a] text-[#666666] uppercase"
+                    className="border border-border text-muted-foreground uppercase"
                     style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 0 }}
                   >
                     {tag}
@@ -204,14 +221,14 @@ const CollectionDetailPage = () => {
         </div>
 
         {/* THIN DIVIDER BELOW HEADER */}
-        <div className="w-full border-b border-[#1a1a1a] mb-12"></div>
+        <div className="w-full border-b border-border mb-12"></div>
 
         {/* ======================= */}
         {/* ITEMS GRID */}
         {/* ======================= */}
         {safeItems.length === 0 ? (
-          <div className="w-full py-12 flex items-center justify-center border border-[#1a1a1a]">
-            <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          <div className="w-full py-12 flex items-center justify-center border border-border">
+            <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               NOTHING IN THIS COLLECTION YET
             </p>
           </div>

@@ -79,8 +79,8 @@ const ItemDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex items-center justify-center p-6">
-        <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+      <div className="min-h-[calc(100vh-72px)] bg-background flex items-center justify-center p-6">
+        <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           LOADING
         </p>
       </div>
@@ -89,13 +89,13 @@ const ItemDetailPage = () => {
 
   if (error || !item) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex flex-col items-center justify-center p-6 gap-6">
-        <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+      <div className="min-h-[calc(100vh-72px)] bg-background flex flex-col items-center justify-center p-6 gap-6">
+        <p className="text-destructive uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           {error || "Item not found"}
         </p>
         <Link 
           to="/library"
-          className="text-[#666666] hover:text-white transition-colors duration-150 uppercase" 
+          className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase" 
           style={{ fontSize: "11px", letterSpacing: "0.08em" }}
         >
           ← RETRN TO LIBRARY
@@ -142,7 +142,7 @@ const ItemDetailPage = () => {
   };
 
   return (
-    <div className="w-full bg-[#000000] flex justify-center py-6" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="w-full bg-background flex justify-center py-6" style={{ fontFamily: "system-ui, sans-serif" }}>
       <div className="shared-container flex flex-col lg:flex-row gap-[64px] items-start">
         
         {/* LEFT COLUMN: Main Content */}
@@ -152,7 +152,7 @@ const ItemDetailPage = () => {
           <div className="flex flex-col">
             <Link 
               to="/library"
-              className="text-[#666666] hover:text-white transition-colors duration-150 uppercase self-start mb-6" 
+              className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase self-start mb-6" 
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               ← LIBRARY
@@ -160,21 +160,21 @@ const ItemDetailPage = () => {
 
             {resurfaceDays && (
               <span 
-                className="border border-[#1a1a1a] text-[#666666] uppercase self-start mb-4"
+                className="border border-border text-muted-foreground uppercase self-start mb-4"
                 style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 0 }}
               >
                 SAVED {resurfaceDays} DAYS AGO
               </span>
             )}
             
-            <div className="flex items-center justify-between text-[#666666] uppercase mb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            <div className="flex items-center justify-between text-muted-foreground uppercase mb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               <span>{displayType}</span>
               <div className="flex items-center gap-4">
                 <span>{timeAgo(createdAt)}</span>
                 <button 
                   onClick={handleDelete}
                   disabled={isDeleting}
-                  className="text-[#666666] hover:text-[#ff3333] transition-colors duration-150 cursor-pointer disabled:opacity-50"
+                  className="text-muted-foreground hover:text-destructive transition-colors duration-150 cursor-pointer disabled:opacity-50"
                   title="Delete item"
                 >
                   <RiDeleteBin4Fill size={16} />
@@ -182,12 +182,12 @@ const ItemDetailPage = () => {
               </div>
             </div>
 
-            <h1 className="text-white leading-snug" style={{ fontSize: "20px", letterSpacing: "0.01em", fontWeight: 500 }}>
+            <h1 className="text-foreground leading-snug" style={{ fontSize: "20px", letterSpacing: "0.01em", fontWeight: 500 }}>
               {title}
             </h1>
             
             {content.author && (
-              <p className="text-[#666666] uppercase mt-3" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              <p className="text-muted-foreground uppercase mt-3" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 {content.author}
               </p>
             )}
@@ -195,11 +195,11 @@ const ItemDetailPage = () => {
 
           {/* Summary Block */}
           {ai.summary && (
-            <div className="flex flex-col gap-4 pt-8 border-t border-[#1a1a1a]">
-              <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            <div className="flex flex-col gap-4 pt-8 border-t border-border">
+              <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 SUMMARY
               </h2>
-              <p className="text-white whitespace-pre-wrap" style={{ fontSize: "14px", letterSpacing: "0.01em", lineHeight: "1.6" }}>
+              <p className="text-foreground whitespace-pre-wrap" style={{ fontSize: "14px", letterSpacing: "0.01em", lineHeight: "1.6" }}>
                 {ai.summary}
               </p>
             </div>
@@ -207,15 +207,15 @@ const ItemDetailPage = () => {
 
           {/* Tags Block */}
           {tags.length > 0 && (
-            <div className="flex flex-col gap-4 pt-8 border-t border-[#1a1a1a]">
-              <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            <div className="flex flex-col gap-4 pt-8 border-t border-border">
+              <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 TAGS
               </h2>
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag, idx) => (
                   <span 
                     key={idx} 
-                    className="border border-[#1a1a1a] text-[#666666] uppercase"
+                    className="border border-border text-muted-foreground uppercase"
                     style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 0 }}
                   >
                     {tag}
@@ -226,15 +226,15 @@ const ItemDetailPage = () => {
           )}
 
           {/* Source Block */}
-          <div className="flex flex-col gap-4 pt-8 border-t border-[#1a1a1a]">
-            <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          <div className="flex flex-col gap-4 pt-8 border-t border-border">
+            <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               SOURCE
             </h2>
             <a 
               href={url}
               target="_blank"
               rel="noreferrer"
-              className="text-[#666666] hover:text-white transition-colors duration-150 truncate block w-full"
+              className="text-muted-foreground hover:text-foreground transition-colors duration-150 truncate block w-full"
               style={{ fontSize: "14px", letterSpacing: "0.01em" }}
             >
               {parseDomain(url)}
@@ -249,7 +249,7 @@ const ItemDetailPage = () => {
           {/* ADD TO COLLECTION */}
           {collections.length > 0 && (
             <div className="flex flex-col gap-6">
-              <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 ADD TO COLLECTION
               </h2>
               <div className="flex flex-col gap-3">
@@ -262,12 +262,12 @@ const ItemDetailPage = () => {
                       key={col._id}
                       onClick={() => handleAddToCollection(col._id)}
                       disabled={isAdding || isAdded}
-                      className="text-left w-full border border-[#1a1a1a] p-3 text-[#666666] hover:text-white hover:border-white transition-colors duration-150 uppercase flex justify-between items-center group"
+                      className="text-left w-full border border-border p-3 text-muted-foreground hover:text-foreground hover:border-foreground transition-colors duration-150 uppercase flex justify-between items-center group"
                       style={{ fontSize: "11px", letterSpacing: "0.08em", background: "none", cursor: (isAdding || isAdded) ? "default" : "pointer" }}
                     >
                       <span className="truncate pr-2 leading-none block pt-[2px]">{col.name}</span>
-                      {isAdding && <span className="text-[#666666] shrink-0 leading-none">...</span>}
-                      {isAdded && <span className="text-white shrink-0 leading-none">ADDED</span>}
+                      {isAdding && <span className="text-muted-foreground shrink-0 leading-none">...</span>}
+                      {isAdded && <span className="text-foreground shrink-0 leading-none">ADDED</span>}
                     </button>
                   );
                 })}
@@ -276,12 +276,12 @@ const ItemDetailPage = () => {
           )}
 
           {/* RELATED */}
-          <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             RELATED
           </h2>
           
           {related.length === 0 ? (
-            <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               NO RELATED ITEMS
             </p>
           ) : (
@@ -293,13 +293,13 @@ const ItemDetailPage = () => {
                   <Link 
                     key={rel._id} 
                     to={`/items/${rel._id}`}
-                    className="group flex flex-col gap-2 p-4 border border-[#1a1a1a] hover:border-white transition-colors duration-150"
+                    className="group flex flex-col gap-2 p-4 border border-border hover:border-foreground transition-colors duration-150"
                   >
-                    <div className="flex justify-between items-center text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+                    <div className="flex justify-between items-center text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                       <span>{relDisplayType}</span>
                       <span>{(rel.score * 100).toFixed(0)}% MATCH</span>
                     </div>
-                    <h3 className="text-white line-clamp-1 leading-tight" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 500 }}>
+                    <h3 className="text-foreground line-clamp-1 leading-tight" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 500 }}>
                       {relTitle}
                     </h3>
                   </Link>

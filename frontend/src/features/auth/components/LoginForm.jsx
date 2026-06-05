@@ -54,7 +54,7 @@ const LoginForm = () => {
       
       {/* HEADER */}
       <h2 
-        className="text-[#666666] uppercase border-b border-[#1a1a1a] pb-4"
+        className="text-muted-foreground uppercase border-b border-border pb-4"
         style={{ fontSize: "11px", letterSpacing: "0.08em" }}
       >
         SIGN IN
@@ -62,7 +62,7 @@ const LoginForm = () => {
 
       {/* ERROR */}
       {error && (
-        <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+        <p className="text-destructive uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           {error}
         </p>
       )}
@@ -72,7 +72,7 @@ const LoginForm = () => {
         
         {/* EMAIL INPUT */}
         <div className="flex flex-col gap-2">
-          <label className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          <label className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             EMAIL ADDRESS
           </label>
           <input
@@ -83,14 +83,14 @@ const LoginForm = () => {
             onChange={handleChange}
             placeholder="enter your email"
             disabled={loading || !isLoaded}
-            className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
-            style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
+            className="w-full bg-background text-foreground border-0 border-b border-border focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
+            style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "var(--foreground)", caretcolor: "var(--foreground)" }}
           />
         </div>
 
         {/* PASSWORD INPUT */}
         <div className="flex flex-col gap-2">
-          <label className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          <label className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             PASSWORD
           </label>
           <input
@@ -101,8 +101,8 @@ const LoginForm = () => {
             onChange={handleChange}
             placeholder="••••••••"
             disabled={loading || !isLoaded}
-            className="w-full bg-[#000000] text-white border-0 border-b border-[#1a1a1a] focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
-            style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "#ffffff", caretColor: "#ffffff" }}
+            className="w-full bg-background text-foreground border-0 border-b border-border focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
+            style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "var(--foreground)", caretcolor: "var(--foreground)" }}
           />
         </div>
 
@@ -110,7 +110,7 @@ const LoginForm = () => {
         <button
           type="submit"
           disabled={loading || !isLoaded}
-          className="w-full mt-2 bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
+          className="w-full mt-2 bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 cursor-pointer uppercase disabled:opacity-50 disabled:cursor-wait"
           style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px", borderRadius: 0, border: "none", fontWeight: 500 }}
         >
           {loading ? "SIGNING IN..." : "SIGN IN"}
@@ -118,10 +118,10 @@ const LoginForm = () => {
       </form>
 
       {/* FOOTER */}
-      <div className="pt-4 mt-2 border-t border-[#1a1a1a] text-center">
+      <div className="pt-4 mt-2 border-t border-border text-center">
         <Link
           to="/register"
-          className="text-[#666666] hover:text-white transition-colors duration-150 uppercase"
+          className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase"
           style={{ fontSize: "11px", letterSpacing: "0.08em" }}
         >
           DON'T HAVE AN ACCOUNT? SIGN UP →

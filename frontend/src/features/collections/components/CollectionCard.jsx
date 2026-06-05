@@ -48,17 +48,17 @@ const CollectionCard = ({ collection, onDelete }) => {
   if (showConfirm) {
     return (
       <div 
-        className="block w-full border border-[#1a1a1a] p-5 flex flex-col justify-center items-center gap-6"
+        className="block w-full border border-border p-5 flex flex-col justify-center items-center gap-6"
         style={{ borderRadius: 0, minHeight: "140px" }}
       >
-        <p className="text-white uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+        <p className="text-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           delete this collection?
         </p>
         <div className="flex items-center gap-6">
           <button 
             type="button"
             onClick={confirmDelete}
-            className="text-[#ff3333] hover:text-white transition-colors duration-150 uppercase cursor-pointer"
+            className="text-destructive hover:text-foreground transition-colors duration-150 uppercase cursor-pointer"
             style={{ fontSize: "11px", letterSpacing: "0.08em", background: "none", border: "none" }}
             disabled={isDeleting}
           >
@@ -67,7 +67,7 @@ const CollectionCard = ({ collection, onDelete }) => {
           <button 
             type="button"
             onClick={handleCancelDelete}
-            className="text-[#666666] hover:text-white transition-colors duration-150 uppercase cursor-pointer"
+            className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase cursor-pointer"
             style={{ fontSize: "11px", letterSpacing: "0.08em", background: "none", border: "none" }}
             disabled={isDeleting}
           >
@@ -82,13 +82,13 @@ const CollectionCard = ({ collection, onDelete }) => {
   return (
     <Link
       to={`/collections/${_id}`}
-      className="block w-full border border-[#1a1a1a] p-5 hover:border-white transition-colors duration-150 flex flex-col gap-4 group"
+      className="block w-full border border-border p-5 hover:border-foreground transition-colors duration-150 flex flex-col gap-4 group"
       style={{ borderRadius: 0, opacity: isDeleting ? 0.5 : 1, minHeight: "140px" }}
     >
       
       {/* 2.1 TYPE AND METADATA */}
       <div
-        className="flex items-center justify-between text-[#666666] uppercase"
+        className="flex items-center justify-between text-muted-foreground uppercase"
         style={{ fontSize: "11px", letterSpacing: "0.08em" }}
       >
         <div className="flex items-center gap-4">
@@ -100,7 +100,7 @@ const CollectionCard = ({ collection, onDelete }) => {
               type="button"
               onClick={handleDeleteClick}
               disabled={isDeleting}
-              className="opacity-0 group-hover:opacity-100 text-[#666666] hover:text-[#ff3333] transition-all duration-150 cursor-pointer disabled:opacity-0"
+              className="opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive transition-all duration-150 cursor-pointer disabled:opacity-0"
               style={{ background: "none", border: "none" }}
               aria-label="Delete collection"
             >
@@ -113,7 +113,7 @@ const CollectionCard = ({ collection, onDelete }) => {
 
       {/* 2.2 NAME INJECTION */}
       <h3
-        className="text-white line-clamp-1 leading-tight flex-1"
+        className="text-foreground line-clamp-1 leading-tight flex-1"
         style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 500 }}
       >
         {name}
@@ -125,7 +125,7 @@ const CollectionCard = ({ collection, onDelete }) => {
           {displayTags.map((tag, idx) => (
             <span
               key={idx}
-              className="border border-[#1a1a1a] text-[#666666] uppercase group-hover:border-[#333333] transition-colors duration-150"
+              className="border border-border text-muted-foreground uppercase group-hover:border-muted-foreground transition-colors duration-150"
               style={{
                 fontSize: "11px",
                 letterSpacing: "0.08em",
@@ -138,7 +138,7 @@ const CollectionCard = ({ collection, onDelete }) => {
           ))}
           {extraTagsCount > 0 && (
             <span
-              className="border border-[#1a1a1a] text-[#666666] uppercase group-hover:border-[#333333] transition-colors duration-150"
+              className="border border-border text-muted-foreground uppercase group-hover:border-muted-foreground transition-colors duration-150"
               style={{
                 fontSize: "11px",
                 letterSpacing: "0.08em",
@@ -154,7 +154,7 @@ const CollectionCard = ({ collection, onDelete }) => {
 
       {/* 2.4 TIMESTAMP BLOCK */}
       <div 
-        className="text-[#666666] uppercase pt-2"
+        className="text-muted-foreground uppercase pt-2"
         style={{ fontSize: "11px", letterSpacing: "0.08em", marginTop: type !== "auto" ? "auto" : "0" }}
       >
         {timeAgo(createdAt)}

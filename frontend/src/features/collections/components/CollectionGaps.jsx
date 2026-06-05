@@ -27,23 +27,23 @@ const CollectionGaps = ({ collectionId }) => {
   return (
     <div className="flex flex-col w-full mt-12">
       {/* Divider line above the section */}
-      <div className="w-full flex flex-col gap-4 pt-8 border-t border-[#1a1a1a]">
+      <div className="w-full flex flex-col gap-4 pt-8 border-t border-border">
         
         {/* Section label */}
-        <h2 className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+        <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           YOU MIGHT ALSO WANT
         </h2>
 
         {/* Context line and tags */}
         <div className="flex flex-col gap-3">
-          <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+          <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             Based on your saved items about:
           </p>
           <div className="flex flex-wrap gap-2">
             {displayTags.map((tag, idx) => (
               <span
                 key={idx}
-                className="border border-[#1a1a1a] text-[#666666] uppercase"
+                className="border border-border text-muted-foreground uppercase"
                 style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 0 }}
               >
                 {tag}
@@ -53,7 +53,7 @@ const CollectionGaps = ({ collectionId }) => {
         </div>
 
         {/* Divider line between context and suggestions */}
-        <div className="w-full border-t border-[#1a1a1a] mt-6 mb-2"></div>
+        <div className="w-full border-t border-border mt-6 mb-2"></div>
 
         {/* SUGGESTIONS LIST */}
         <div className="flex flex-col w-full">
@@ -62,11 +62,11 @@ const CollectionGaps = ({ collectionId }) => {
             return (
               <div 
                 key={idx} 
-                className={`flex justify-between items-center py-4 ${!isLast ? "border-b border-[#1a1a1a]" : ""}`}
+                className={`flex justify-between items-center py-4 ${!isLast ? "border-b border-border" : ""}`}
               >
                 {/* Left side */}
-                <div className="flex items-center text-white" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 400 }}>
-                  <span className="text-[#666666] mr-3">→</span>
+                <div className="flex items-center text-foreground" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 400 }}>
+                  <span className="text-muted-foreground mr-3">→</span>
                   {suggestion}
                 </div>
 
@@ -75,7 +75,7 @@ const CollectionGaps = ({ collectionId }) => {
                   href={`https://www.google.com/search?q=${encodeURIComponent(suggestion)}`}
                   target="_blank"
                   rel="noreferrer"
-                  className="text-[#666666] hover:text-white transition-colors duration-150 uppercase whitespace-nowrap ml-4"
+                  className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase whitespace-nowrap ml-4"
                   style={{ fontSize: "11px", letterSpacing: "0.08em" }}
                 >
                   Search →

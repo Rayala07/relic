@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import itemService from "../../items/services/item.service";
 import CollectionCard from "../components/CollectionCard";
+import SkeletonGrid from "../../../components/ui/SkeletonGrid";
 
 const CollectionListPage = () => {
   const [collections, setCollections] = useState([]);
@@ -91,25 +92,18 @@ const CollectionListPage = () => {
     setCollections(prev => prev.filter(c => c._id !== id));
   };
 
-  if (loading && collections.length === 0) {
-    return (
-      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex items-center justify-center p-6">
-        <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
-          LOADING
-        </p>
-      </div>
-    );
-  }
+  // Remove early return for loading so we preserve the layout structure
+
 
   if (error && collections.length === 0) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-[#000000] flex flex-col items-center justify-center p-6 gap-6">
-        <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+      <div className="min-h-[calc(100vh-72px)] bg-background flex flex-col items-center justify-center p-6 gap-6">
+        <p className="text-destructive uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           {error}
         </p>
         <button 
           onClick={loadCollections}
-          className="bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 uppercase cursor-pointer" 
+          className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 uppercase cursor-pointer" 
           style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px 28px", fontWeight: 500, borderRadius: 0, border: "none" }}
         >
           RETRY
@@ -122,21 +116,21 @@ const CollectionListPage = () => {
   const manualCollections = collections.filter(c => c.type !== "auto");
 
   return (
-    <div className="min-h-[calc(100vh-72px)] w-full bg-[#000000] flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
       <div className="shared-container w-full flex flex-col items-center px-6">
         
         {/* HEADER ROW */}
-        <div className="w-full flex items-end justify-between pb-6 mb-8 mt-[16px] border-b border-[#1a1a1a]">
+        <div className="w-full flex items-end justify-between pb-6 mb-8 mt-[16px] border-b border-border">
           <div className="flex flex-col gap-2">
-            <h1 className="text-white uppercase" style={{ fontSize: "20px", fontWeight: 500, letterSpacing: "0.01em" }}>COLLECTIONS</h1>
-            <span className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            <h1 className="text-foreground uppercase" style={{ fontSize: "20px", fontWeight: 500, letterSpacing: "0.01em" }}>COLLECTIONS</h1>
+            <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               {collections.length === 1 ? "1 COLLECTION" : `${collections.length} COLLECTIONS`}
             </span>
           </div>
           <button 
             type="button"
             onClick={() => setShowForm(true)}
-            className="bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 uppercase" 
+            className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 uppercase" 
             style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px 28px", fontWeight: 500, border: "none", cursor: "pointer" }}
           >
             NEW COLLECTION
@@ -153,12 +147,12 @@ const CollectionListPage = () => {
                  placeholder="collection name"
                  value={name}
                  onChange={e => setName(e.target.value)}
-                 className="w-full bg-transparent text-white border-0 border-b border-[#1a1a1a] focus:border-white focus:outline-none px-0 pb-4 transition-colors duration-150"
+                 className="w-full bg-transparent text-foreground border-0 border-b border-border focus:border-white focus:outline-none px-0 pb-4 transition-colors duration-150"
                  style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0 }}
                  disabled={isCreating}
               />
               {formError && (
-                 <p className="text-[#ff3333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+                 <p className="text-destructive uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                    {formError}
                  </p>
               )}
@@ -168,7 +162,7 @@ const CollectionListPage = () => {
                  placeholder="description (optional)"
                  value={description}
                  onChange={e => setDescription(e.target.value)}
-                 className="w-full bg-transparent text-white border-0 border-b border-[#1a1a1a] focus:border-white focus:outline-none px-0 pb-4 transition-colors duration-150"
+                 className="w-full bg-transparent text-foreground border-0 border-b border-border focus:border-white focus:outline-none px-0 pb-4 transition-colors duration-150"
                  style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0 }}
                  disabled={isCreating}
               />
@@ -177,7 +171,7 @@ const CollectionListPage = () => {
                  <button 
                    onClick={handleCreate}
                    disabled={isCreating}
-                   className="bg-white text-black hover:bg-[#e0e0e0] transition-colors duration-150 uppercase" 
+                   className="bg-primary text-primary-foreground hover:bg-primary/90 transition-colors duration-150 uppercase" 
                    style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "14px 28px", fontWeight: 500, border: "none", cursor: "pointer" }}
                  >
                    {isCreating ? "CREATING..." : "CREATE"}
@@ -185,7 +179,7 @@ const CollectionListPage = () => {
                  <button 
                    onClick={handleCancel}
                    disabled={isCreating}
-                   className="text-[#666666] hover:text-white transition-colors duration-150 uppercase" 
+                   className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase" 
                    style={{ fontSize: "11px", letterSpacing: "0.08em", background: "none", border: "none", cursor: "pointer" }}
                  >
                    CANCEL
@@ -193,7 +187,14 @@ const CollectionListPage = () => {
               </div>
             </div>
             {/* THIN DIVIDER BELOW FORM */}
-            <div className="w-full border-b border-[#1a1a1a] mt-8"></div>
+            <div className="w-full border-b border-border mt-8"></div>
+          </div>
+        )}
+
+        {/* LOADING STATE */}
+        {loading && collections.length === 0 && !error && (
+          <div className="w-full mt-12">
+            <SkeletonGrid count={6} />
           </div>
         )}
 
@@ -203,7 +204,7 @@ const CollectionListPage = () => {
         {autoCollections.length > 0 && (
           <div className="w-full flex flex-col mb-12">
             <h2 
-              className="text-[#666666] uppercase mb-6" 
+              className="text-muted-foreground uppercase mb-6" 
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               AUTO-ORGANIZED
@@ -220,7 +221,7 @@ const CollectionListPage = () => {
             
             {/* Divider if manual exists below */}
             {manualCollections.length > 0 && (
-               <div className="w-full border-b border-[#1a1a1a] mt-12"></div>
+               <div className="w-full border-b border-border mt-12"></div>
             )}
           </div>
         )}
@@ -230,15 +231,15 @@ const CollectionListPage = () => {
         {/* ======================= */}
         <div className="w-full flex flex-col mb-12">
           <h2 
-            className="text-[#666666] uppercase mb-6" 
+            className="text-muted-foreground uppercase mb-6" 
             style={{ fontSize: "11px", letterSpacing: "0.08em" }}
           >
             YOUR COLLECTIONS
           </h2>
           
           {manualCollections.length === 0 ? (
-            <div className="w-full py-12 flex items-center justify-center border border-[#1a1a1a]">
-              <p className="text-[#666666] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+            <div className="w-full py-12 flex items-center justify-center border border-border">
+              <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 NO COLLECTIONS YET — CREATE ONE ABOVE
               </p>
             </div>
@@ -258,7 +259,7 @@ const CollectionListPage = () => {
         {/* END LABEL */}
         {!loading && collections.length > 0 && (
           <div className="w-full flex justify-center mt-8 mb-16">
-             <span className="text-[#333333] uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+             <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                — END —
              </span>
           </div>
