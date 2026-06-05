@@ -2,10 +2,12 @@ import "dotenv/config";
 import app from "./src/app.js";
 import connectToDB from "./src/config/database.js";
 import { startResurfacerCron } from "./src/utils/resurfacer.js";
+import "./src/services/queue.js"; // Activates the BullMQ Worker on server start
 
 const REQUIRED_ENV_VARS = [
   'MONGO_URI',
   'CLERK_SECRET_KEY',
+  'GEMINI_API_KEY',
   'MISTRAL_API_KEY',
   'PINECONE_API_KEY',
   'PINECONE_INDEX',
@@ -28,6 +30,7 @@ const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, async () => {
   console.log(`Server is running on port ${PORT}`);
+  console.log(`[Queue] Pipeline worker is active and listening for jobs`);
 
   await connectToDB();
   startResurfacerCron();

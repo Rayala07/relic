@@ -1,5 +1,11 @@
 import Item from "../models/item.model.js";
 import Collection from "../models/collection.model.js";
+import redisClient from "../config/redis.js";
+
+// Cache TTL in seconds.
+// 60s means stats are at most 1 minute stale after a new item is saved.
+// Short enough to feel live, long enough to eliminate repeated DB hammering.
+const STATS_CACHE_TTL = 60;
 
 // ── STREAK CALCULATION ────────────────────────
 // Receives items sorted by createdAt ascending.
@@ -43,12 +49,24 @@ function calculateStreak(items) {
 }
 
 export const getStats = async (req, res) => {
+  // Cache key is scoped to the user — one cache entry per user.
+  // Without user scoping, user A would see user B's cached stats.
+  const cacheKey = `stats:${req.userId}`;
+
   try {
+    // ── Step 1: Check Redis cache first ───────────────────────────────────────
+    // If a fresh result exists, return it immediately — zero DB queries.
+    const cached = await redisClient.get(cacheKey);
+    if (cached) {
+      return res.json({ success: true, data: JSON.parse(cached), cached: true });
+    }
+
+    // ── Step 2: Cache miss — run the DB queries ────────────────────────────────
     // Run all queries in parallel — never sequential
     const [allDoneItems, collectionsCount] = await Promise.all([
       Item.find(
         { user: req.userId, extractionStatus: "resolved" },
-        { "createdAt": 1 }
+        { createdAt: 1 }
       )
         .sort({ createdAt: 1 })
         .lean(),
@@ -57,28 +75,23 @@ export const getStats = async (req, res) => {
     ]);
 
     // ── STAT 1: THINGS SAVED ──────────────────
-    // Total number of successfully processed items
     const totalSaved = allDoneItems.length;
 
     // ── STAT 2: DAY STREAK ────────────────────
-    // Consecutive days ending today (or yesterday
-    // if user hasn't saved yet today) where at
-    // least one item was saved
     const streak = calculateStreak(allDoneItems);
 
     // ── STAT 3: COLLECTIONS ───────────────────
-    // Total collections created — both auto-organized
-    // and manually created
     const collections = collectionsCount;
 
-    res.json({
-      success: true,
-      data: {
-        totalSaved,
-        streak,
-        collections,
-      },
-    });
+    const data = { totalSaved, streak, collections };
+
+    // ── Step 3: Store in Redis with TTL ───────────────────────────────────────
+    // SETEX atomically sets the value and expiry in one command.
+    // Even if Redis is down, the catch block falls through and we still respond.
+    await redisClient.setex(cacheKey, STATS_CACHE_TTL, JSON.stringify(data));
+
+    return res.json({ success: true, data });
+
   } catch (err) {
     console.error("stats route error:", err.message);
     res.status(500).json({

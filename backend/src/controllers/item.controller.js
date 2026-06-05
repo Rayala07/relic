@@ -1,7 +1,7 @@
 import Item from "../models/item.model.js";
 import detectType from "../utils/detectType.js";
-import extractionPipeline from "../utils/pipeline.js";
 import { deleteChunks, findRelatedItems } from "../utils/pinecone.js";
+import { pipelineQueue } from "../services/queue.js";
 
 /**
  * Create Item Controller
@@ -43,9 +43,10 @@ export const createItem = async (req, res) => {
 
     res.status(201).json({ success: true, data: item });
 
-    // Fire-and-forget — pipeline runs in the background after the response
-    // is already sent. User never waits for extraction to complete.
-    extractionPipeline(item._id).catch(console.error);
+    // Enqueue the pipeline as a background job via BullMQ.
+    // The Worker in queue.js will pick this up and process it asynchronously.
+    // This completely decouples AI processing latency from the HTTP response.
+    await pipelineQueue.add("process-item", { itemId: item._id.toString() });
 
     return;
   } catch (error) {
