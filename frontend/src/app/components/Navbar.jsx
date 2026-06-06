@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
+import { Search } from "lucide-react";
 import { ModeToggle } from "../../components/ModeToggle";
 
 const Navbar = () => {
@@ -18,7 +19,6 @@ const Navbar = () => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setDropdownOpen(false);
       }
-      // Close hamburger menu if clicking outside of it
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setMenuOpen(false);
       }
@@ -57,7 +57,6 @@ const Navbar = () => {
     { name: "LIBRARY", path: "/library" },
     { name: "COLLECTIONS", path: "/collections" },
     { name: "SAVE", path: "/save" },
-    { name: "SEARCH", path: "/search" },
   ];
 
   const triggerLogout = async () => {
@@ -69,51 +68,20 @@ const Navbar = () => {
   const isLinkActive = (link) =>
     link.path === "/" ? pathname === "/" : pathname.startsWith(link.path);
 
-  const linkStyle = (active) => ({
-    fontSize: "11px",
-    letterSpacing: "0.08em",
-    color: active ? "var(--foreground)" : "var(--muted-foreground)",
-    textTransform: "uppercase",
-    textDecoration: "none",
-    transition: "color 0.15s",
-    whiteSpace: "nowrap",
-    flexShrink: 0,
-  });
-
   return (
-    <div ref={menuRef} style={{ position: "relative", zIndex: 50 }}>
+    <div ref={menuRef} className="relative z-50">
       {/* ── NAVBAR BAR ─────────────────────────────────────────────── */}
-      <nav
-        style={{
-          position: "fixed",
-          top: 0,
-          left: 0,
-          right: 0,
-          height: "72px",
-          background: "var(--background)",
-          borderBottom: "1px solid var(--border)",
-          zIndex: 50,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          padding: "0 24px",
-          fontFamily: "system-ui, sans-serif",
-          width: "100%",
-          boxSizing: "border-box",
-        }}
-      >
+      <nav className="fixed top-0 left-0 right-0 h-[72px] bg-background border-b border-border z-50 flex items-center justify-between px-6 w-full box-border font-sans">
+        
         {/* LEFT: Branding — never shrinks */}
-        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "12px" }}>
-          <Link to="/" style={{ display: "flex", alignItems: "center", gap: "12px", textDecoration: "none" }}>
+        <div className="shrink-0 flex items-center gap-3">
+          <Link to="/" className="flex items-center gap-3 no-underline">
             <img
               src="/Relic_logo.png"
               alt="Relic logo"
-              style={{ width: 24, height: 24, objectFit: "contain", opacity: 0.8 }}
+              className="w-6 h-6 object-contain opacity-80"
             />
-            <span
-              className="relic-logo-text"
-              style={{ color: "var(--foreground)", fontSize: "16px", letterSpacing: "0.08em", fontWeight: 600, whiteSpace: "nowrap" }}
-            >
+            <span className="text-foreground text-base tracking-[0.08em] font-semibold whitespace-nowrap">
               Relic
             </span>
           </Link>
@@ -121,89 +89,65 @@ const Navbar = () => {
 
         {/* CENTER: Desktop nav links — hidden below 1024px */}
         {isLoaded && user && (
-          <div className="desktop-nav" style={{ display: "flex", alignItems: "center", gap: "24px", flexShrink: 1, minWidth: 0, overflow: "hidden" }}>
-            <ModeToggle />
-            <div style={{ width: "1px", height: "16px", background: "var(--border)" }}></div>
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                style={linkStyle(isLinkActive(link))}
-                onMouseEnter={(e) => { e.currentTarget.style.color = "var(--foreground)"; }}
-                onMouseLeave={(e) => { e.currentTarget.style.color = isLinkActive(link) ? "var(--foreground)" : "var(--muted-foreground)"; }}
-              >
-                {link.name}
-              </Link>
-            ))}
+          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6 shrink min-w-0 overflow-hidden">
+            {navLinks.map((link) => {
+              const active = isLinkActive(link);
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  className={`text-[11px] tracking-[0.08em] uppercase no-underline whitespace-nowrap shrink-0 transition-colors duration-150 ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                >
+                  {link.name}
+                </Link>
+              );
+            })}
           </div>
         )}
 
         {/* RIGHT: Profile + hamburger — never shrinks */}
-        <div style={{ flexShrink: 0, display: "flex", alignItems: "center", gap: "12px" }}>
+        <div className="shrink-0 flex items-center gap-3">
+
+          {/* Search Trigger Placeholder */}
+          {isLoaded && user && (
+            <Link
+              to="/search"
+              className="hidden sm:flex items-center gap-12 px-3 py-1.5 rounded-md bg-background border border-border text-muted-foreground no-underline text-xs transition-colors hover:border-muted-foreground hover:text-foreground"
+            >
+              <span>Search <span className="opacity-60">(CMD/CTRL + K)</span></span>
+              <Search size={14} />
+            </Link>
+          )}
+
+          {isLoaded && user && (
+            <ModeToggle />
+          )}
 
           {/* Hamburger — only visible below 1024px */}
           {isLoaded && user && (
             <button
-              className="hamburger-btn"
+              className="lg:hidden flex flex-col gap-1 items-center justify-center p-2 bg-transparent border-none cursor-pointer"
               onClick={() => setMenuOpen((prev) => !prev)}
               aria-label="Toggle navigation menu"
-              style={{
-                background: "none",
-                border: "none",
-                padding: "8px",
-                cursor: "pointer",
-                display: "none", // shown via CSS below 1024px
-                flexDirection: "column",
-                gap: "4px",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
             >
-              <span
-                style={{
-                  display: "block",
-                  width: 18,
-                  height: 1,
-                  background: "var(--foreground)",
-                  transition: "transform 0.2s ease, opacity 0.2s ease",
-                  transform: menuOpen ? "translateY(5px) rotate(45deg)" : "none",
-                }}
-              />
-              <span
-                style={{
-                  display: "block",
-                  width: 18,
-                  height: 1,
-                  background: "var(--foreground)",
-                  transition: "opacity 0.2s ease",
-                  opacity: menuOpen ? 0 : 1,
-                }}
-              />
-              <span
-                style={{
-                  display: "block",
-                  width: 18,
-                  height: 1,
-                  background: "var(--foreground)",
-                  transition: "transform 0.2s ease, opacity 0.2s ease",
-                  transform: menuOpen ? "translateY(-5px) rotate(-45deg)" : "none",
-                }}
-              />
+              <span className={`block w-[18px] h-[1px] bg-foreground transition-all duration-200 ${menuOpen ? 'translate-y-[5px] rotate-45' : ''}`} />
+              <span className={`block w-[18px] h-[1px] bg-foreground transition-all duration-200 ${menuOpen ? 'opacity-0' : 'opacity-100'}`} />
+              <span className={`block w-[18px] h-[1px] bg-foreground transition-all duration-200 ${menuOpen ? '-translate-y-[5px] -rotate-45' : ''}`} />
             </button>
           )}
 
           {/* Profile circle & dropdown */}
-          <div className="profile-area" ref={dropdownRef} style={{ position: "relative", display: "flex", alignItems: "center" }}>
+          <div className="relative flex items-center" ref={dropdownRef}>
             {!isLoaded ? (
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: "transparent", border: "1px solid transparent" }} />
+              <div className="w-8 h-8 rounded-full bg-transparent border border-transparent" />
             ) : !user ? (
-              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-                <Link to="/login" style={linkStyle(false)} onMouseEnter={e => e.currentTarget.style.color="var(--foreground)"} onMouseLeave={e => e.currentTarget.style.color="var(--muted-foreground)"}>LOGIN</Link>
+              <div className="flex items-center gap-4">
+                <Link to="/login" className="text-[11px] tracking-[0.08em] uppercase no-underline transition-colors text-muted-foreground hover:text-foreground">
+                  LOGIN
+                </Link>
                 <Link
                   to="/register"
-                  style={{ background: "var(--foreground)", color: "var(--background)", padding: "8px 16px", fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500, textTransform: "uppercase", textDecoration: "none", transition: "background 0.15s", whiteSpace: "nowrap" }}
-                  onMouseEnter={e => e.currentTarget.style.background="var(--accent)"}
-                  onMouseLeave={e => e.currentTarget.style.background="var(--foreground)"}
+                  className="bg-foreground text-background px-4 py-2 text-[11px] tracking-[0.08em] font-medium uppercase no-underline transition-colors whitespace-nowrap hover:bg-accent"
                 >
                   SIGN UP
                 </Link>
@@ -212,38 +156,18 @@ const Navbar = () => {
               <>
                 <button
                   onClick={() => setDropdownOpen((prev) => !prev)}
-                  style={{
-                    width: 32, height: 32, borderRadius: "50%",
-                    background: "var(--background)", border: "1px solid var(--border)",
-                    display: "flex", alignItems: "center", justifyContent: "center",
-                    cursor: "pointer", outline: "none", flexShrink: 0,
-                  }}
+                  className="w-8 h-8 rounded-full bg-background border border-border flex items-center justify-center cursor-pointer outline-none shrink-0"
                 >
-                  <span style={{ color: "var(--muted-foreground)", fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
+                  <span className="text-muted-foreground text-[11px] tracking-[0.08em] uppercase">
                     {initials}
                   </span>
                 </button>
 
                 {dropdownOpen && (
-                  <div
-                    style={{
-                      position: "absolute", top: "40px", right: 0, marginTop: "8px",
-                      background: "var(--background)", border: "1px solid var(--border)",
-                      paddingTop: "8px", paddingBottom: "8px", minWidth: "120px",
-                      display: "flex", flexDirection: "column", zIndex: 60,
-                      borderRadius: 0,
-                    }}
-                  >
+                  <div className="absolute top-10 right-0 mt-2 bg-background border border-border py-2 min-w-[120px] flex flex-col z-[60] rounded-none">
                     <button
                       onClick={triggerLogout}
-                      style={{
-                        width: "100%", textAlign: "left", padding: "8px 16px",
-                        fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase",
-                        color: "var(--muted-foreground)", background: "transparent", border: "none",
-                        cursor: "pointer", transition: "color 0.15s",
-                      }}
-                      onMouseEnter={e => { e.currentTarget.style.color="var(--foreground)"; e.currentTarget.style.background="var(--accent)"; }}
-                      onMouseLeave={e => { e.currentTarget.style.color="var(--muted-foreground)"; e.currentTarget.style.background="transparent"; }}
+                      className="w-full text-left px-4 py-2 text-[11px] tracking-[0.08em] uppercase text-muted-foreground bg-transparent border-none cursor-pointer transition-colors hover:text-foreground hover:bg-accent"
                     >
                       LOGOUT
                     </button>
@@ -257,18 +181,7 @@ const Navbar = () => {
 
       {/* ── MOBILE DROPDOWN PANEL ──────────────────────────────────── */}
       {menuOpen && user && (
-        <div
-          style={{
-            position: "fixed",
-            top: "72px",
-            left: 0,
-            right: 0,
-            background: "var(--background)",
-            borderBottom: "1px solid var(--border)",
-            zIndex: 49,
-            padding: "0 24px",
-          }}
-        >
+        <div className="fixed top-[72px] left-0 right-0 bg-background border-b border-border z-[49] px-6">
           {navLinks.map((link, idx) => {
             const active = isLinkActive(link);
             return (
@@ -276,26 +189,14 @@ const Navbar = () => {
                 key={link.name}
                 to={link.path}
                 onClick={() => setMenuOpen(false)}
-                style={{
-                  display: "block",
-                  padding: "16px 0",
-                  fontSize: "11px",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  color: active ? "var(--foreground)" : "var(--muted-foreground)",
-                  textDecoration: "none",
-                  borderBottom: idx < navLinks.length - 1 ? "1px solid var(--border)" : "none",
-                  transition: "color 0.15s",
-                }}
-                onMouseEnter={e => e.currentTarget.style.color="var(--foreground)"}
-                onMouseLeave={e => e.currentTarget.style.color= active ? "var(--foreground)" : "var(--muted-foreground)"}
+                className={`block py-4 text-[11px] tracking-[0.08em] uppercase no-underline transition-colors ${idx < navLinks.length - 1 ? 'border-b border-border' : ''} ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
               >
                 {link.name}
               </Link>
             );
           })}
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 0" }}>
-            <span style={{ fontSize: "11px", letterSpacing: "0.08em", textTransform: "uppercase", color: "var(--muted-foreground)" }}>THEME</span>
+          <div className="flex items-center justify-between py-4">
+            <span className="text-[11px] tracking-[0.08em] uppercase text-muted-foreground">THEME</span>
             <ModeToggle />
           </div>
         </div>
