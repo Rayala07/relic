@@ -131,10 +131,7 @@ const SavePage = () => {
   };
 
   return (
-    <div
-      className="min-h-[calc(100vh-72px)] bg-background flex items-center justify-center px-6"
-      style={{ fontFamily: "system-ui, sans-serif" }}
-    >
+    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12 px-6">
       <div className="w-full" style={{ maxWidth: "480px" }}>
         
         {/* ── IDLE / DEFAULT STATE ── */}

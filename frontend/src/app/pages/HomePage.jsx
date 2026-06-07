@@ -78,7 +78,7 @@ const HomePage = () => {
   }, []);
 
   return (
-    <div className="w-full flex flex-col items-center" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="w-full flex flex-col items-center">
       
       {/* ======================= */}
       {/* SECTION 1: HERO CONTAINER */}

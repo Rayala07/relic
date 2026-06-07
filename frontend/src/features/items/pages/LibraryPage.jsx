@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import itemService from "../services/item.service";
 import ItemCard from "../components/ItemCard";
 import SkeletonGrid from "../../../components/ui/SkeletonGrid";
+import ResurfaceStrip from "../components/ResurfaceStrip";
 
 const FILTERS = ["ALL", "WEBPAGE", "DOCS", "YOUTUBE", "SOCIAL"];
 
@@ -17,6 +18,28 @@ const LibraryPage = () => {
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+
+  // ── Resurfaced items — completely isolated state ───────────────────
+  // Fetched independently so any failure (network, empty cache, 500)
+  // never affects the library grid's loading/error/empty states.
+  const [resurfacedItems, setResurfacedItems] = useState([]);
+
+  useEffect(() => {
+    let active = true;
+    itemService
+      .getResurfaced()
+      .then((res) => {
+        // Edge case: API returned success but data is missing or not an array
+        if (active && res?.success && Array.isArray(res.data) && res.data.length > 0) {
+          // Limit to 5 cards max in the strip to keep it scannable
+          setResurfacedItems(res.data.slice(0, 5));
+        }
+      })
+      .catch(() => {
+        // Silently swallow — strip simply won't render
+      });
+    return () => { active = false; };
+  }, []);
 
   const fetchItems = useCallback(async (targetPage, isAppend = false) => {
     try {
@@ -77,7 +100,7 @@ const LibraryPage = () => {
   // Remove early return for loading so we keep the layout shell intact
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[calc(100vh-72px)] bg-background flex justify-center py-12">
       <div className="shared-container">
         
         {/* TOP BAR */}
@@ -150,6 +173,10 @@ const LibraryPage = () => {
             </p>
           </div>
         ) : null}
+
+        {/* RESURFACE STRIP — renders only when there are resurfaced items */}
+        {/* Conditionally rendered: never shows when list is empty */}
+        <ResurfaceStrip items={resurfacedItems} />
 
         {/* GRID LAYOUT */}
         {displayedItems.length > 0 && (

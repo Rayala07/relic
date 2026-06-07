@@ -1,34 +1,45 @@
-import { getResurfacedItems } from "../utils/resurfacer.js";
-
 /**
  * Resurface Controller
  *
  * Handles GET /api/resurface
  *
- * Reads from the in-memory store populated by the daily cron job.
- * No DB call is made at read time — the response is instant.
- * Each item is labelled with a human-readable "X days ago" string
- * for the frontend "you saved this X days ago" banner.
+ * ARCHITECTURE: Cache-first read from Redis.
+ *
+ * The BullMQ resurfaceWorker (queue.js) writes to Redis key resurface:{userId}
+ * every morning at 9 AM. This controller simply reads that key.
+ *
+ * Benefits over the old in-memory approach:
+ *  - No RAM consumed on the API server — data lives in Redis
+ *  - Works correctly with any number of server replicas (all share the same Redis)
+ *  - Response time is always <5ms (Redis key lookup vs. in-memory array filter)
+ *  - If the cache is empty (new user, or before first cron run), returns []
+ *    gracefully — no errors, no crashes.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
-export const getResurfaced = (req, res) => {
+
+import connection from "../config/redis.js";
+
+export const getResurfaced = async (req, res) => {
   try {
-    const allItems = getResurfacedItems();
+    const redisKey = `resurface:${req.userId}`;
 
-    // STRICTLY FILTER BY req.userId
-    // The memory store holds global items across all users
-    const items = allItems.filter(i => i.item.user?.toString() === req.userId);
+    // Read the pre-computed cache for this specific user
+    const cached = await connection.get(redisKey);
 
-    // Format the response — label each item with
-    // a human-readable string for the frontend
+    // If no cache exists yet (new user or before first cron), return empty gracefully
+    if (!cached) {
+      return res.json({ success: true, count: 0, data: [] });
+    }
+
+    const items = JSON.parse(cached);
+
+    // Add the human-readable label that the frontend banner uses
     const data = items.map(({ item, daysAgo }) => ({
       ...item,
       daysAgo,
-      resurfaceLabel: daysAgo === 1
-        ? "yesterday"
-        : `${daysAgo} days ago`,
+      resurfaceLabel: daysAgo === 1 ? "yesterday" : `${daysAgo} days ago`,
     }));
 
     return res.json({

@@ -34,6 +34,10 @@ export function chunkText(text, size = 1000, overlap = 150) {
       chunks.push(chunk);
     }
     
+    if (end >= text.length) {
+      break;
+    }
+    
     // Advance start, keeping the overlap
     start = end - overlap;
   }

@@ -20,7 +20,6 @@ const ItemDetailPage = () => {
   
   const [item, setItem] = useState(null);
   const [related, setRelated] = useState([]);
-  const [resurfaceDays, setResurfaceDays] = useState(null);
   const [collections, setCollections] = useState([]);
   
   const [addingCollectionId, setAddingCollectionId] = useState(null);
@@ -37,10 +36,9 @@ const ItemDetailPage = () => {
         setLoading(true);
         setError(null);
 
-        const [itemRes, relatedRes, resurfaceRes, collRes] = await Promise.all([
+        const [itemRes, relatedRes, collRes] = await Promise.all([
           itemService.getById(id),
           itemService.getRelated(id).catch(() => ({ success: true, count: 0, data: [] })),
-          itemService.getResurfaced().catch(() => ({ success: true, count: 0, data: [] })),
           itemService.getCollections().catch(() => ({ success: true, count: 0, data: [] }))
         ]);
 
@@ -52,13 +50,6 @@ const ItemDetailPage = () => {
           
           if (relatedRes && relatedRes.success) {
             setRelated(relatedRes.data);
-          }
-          
-          if (resurfaceRes && resurfaceRes.success && resurfaceRes.data) {
-            const found = resurfaceRes.data.find(r => r._id === id);
-            if (found) {
-              setResurfaceDays(found.daysAgo);
-            }
           }
           
           if (collRes && collRes.success && collRes.data) {
@@ -142,7 +133,7 @@ const ItemDetailPage = () => {
   };
 
   return (
-    <div className="w-full bg-background flex justify-center py-6" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="w-full bg-background flex justify-center py-6">
       <div className="shared-container flex flex-col lg:flex-row gap-[64px] items-start">
         
         {/* LEFT COLUMN: Main Content */}
@@ -158,14 +149,7 @@ const ItemDetailPage = () => {
               ← LIBRARY
             </Link>
 
-            {resurfaceDays && (
-              <span 
-                className="border border-border text-muted-foreground uppercase self-start mb-4"
-                style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 0 }}
-              >
-                SAVED {resurfaceDays} DAYS AGO
-              </span>
-            )}
+
             
             <div className="flex items-center justify-between text-muted-foreground uppercase mb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               <span>{displayType}</span>

@@ -1,8 +1,8 @@
 import "dotenv/config";
 import app from "./src/app.js";
 import connectToDB from "./src/config/database.js";
-import { startResurfacerCron } from "./src/utils/resurfacer.js";
-import "./src/services/queue.js"; // Activates the BullMQ Worker on server start
+import "./src/services/queue.js"; // Must be first — activates both BullMQ workers (pipeline + resurface)
+import { startResurfacerCron } from "./src/utils/resurfacer.js"; // Depends on queue.js being loaded
 
 const REQUIRED_ENV_VARS = [
   'MONGO_URI',

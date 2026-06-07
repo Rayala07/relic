@@ -116,7 +116,7 @@ const CollectionListPage = () => {
   const manualCollections = collections.filter(c => c.type !== "auto");
 
   return (
-    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12">
       <div className="shared-container w-full flex flex-col items-center px-6">
         
         {/* HEADER ROW */}

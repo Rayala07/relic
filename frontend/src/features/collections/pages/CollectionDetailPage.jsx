@@ -81,7 +81,7 @@ const CollectionDetailPage = () => {
   // LOADING STATE
   if (loading && !collection) {
     return (
-      <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+      <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12">
         <div className="shared-container w-full flex flex-col px-6">
           <div className="flex justify-between items-center w-full mb-8">
             <Skeleton className="h-3 w-24 bg-secondary" style={{ borderRadius: 0 }} />
@@ -126,7 +126,7 @@ const CollectionDetailPage = () => {
   const safeItems = Array.isArray(items) ? items : [];
 
   return (
-    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12">
       <div className="shared-container w-full flex flex-col px-6">
         
         {/* ======================= */}

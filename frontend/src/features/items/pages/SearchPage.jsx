@@ -48,7 +48,7 @@ const SearchPage = () => {
   }, [query, setSearchParams]);
 
   return (
-    <div className="min-h-[calc(100vh-72px)] bg-background flex justify-center py-12" style={{ fontFamily: "system-ui, sans-serif" }}>
+    <div className="min-h-[calc(100vh-72px)] bg-background flex justify-center py-12">
       <div className="shared-container w-full flex flex-col items-center">
         <div className="w-full flex flex-col mb-8 pb-8 border-b border-border">
           <label className="text-muted-foreground mb-2 uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
