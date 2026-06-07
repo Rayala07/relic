@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useUser, useClerk } from "@clerk/clerk-react";
 import { Search } from "lucide-react";
 import { ModeToggle } from "../../components/ModeToggle";
+import { motion } from "motion/react";
 
 const Navbar = () => {
   const { pathname } = useLocation();
@@ -10,6 +11,7 @@ const Navbar = () => {
   const { signOut } = useClerk();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
+  const [hoveredLink, setHoveredLink] = useState(null);
   const dropdownRef = useRef(null);
   const menuRef = useRef(null);
 
@@ -81,24 +83,41 @@ const Navbar = () => {
               alt="Relic logo"
               className="w-6 h-6 object-contain opacity-80"
             />
-            <span className="text-foreground text-base tracking-[0.08em] font-semibold whitespace-nowrap">
-              Relic
+            <span className="text-foreground text-base tracking-[0.1em] font-heading font-bold uppercase whitespace-nowrap">
+              RELIC
             </span>
           </Link>
         </div>
 
         {/* CENTER: Desktop nav links — hidden below 1024px */}
         {isLoaded && user && (
-          <div className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-6 shrink min-w-0 overflow-hidden">
+          <div 
+            className="hidden lg:flex absolute left-1/2 -translate-x-1/2 items-center gap-2 shrink min-w-0 overflow-hidden"
+            onMouseLeave={() => setHoveredLink(null)}
+          >
             {navLinks.map((link) => {
               const active = isLinkActive(link);
+              const isTarget = hoveredLink ? hoveredLink === link.path : active;
+
               return (
                 <Link
                   key={link.name}
                   to={link.path}
-                  className={`text-[11px] tracking-[0.08em] uppercase no-underline whitespace-nowrap shrink-0 transition-colors duration-150 ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                  onMouseEnter={() => setHoveredLink(link.path)}
+                  className={`relative px-4 py-2 rounded-md text-[11px] tracking-[0.08em] uppercase no-underline whitespace-nowrap shrink-0 transition-colors duration-300 z-10 ${
+                    active 
+                      ? isTarget ? 'text-background font-medium' : 'text-foreground font-medium'
+                      : isTarget ? 'text-foreground' : 'text-muted-foreground'
+                  }`}
                 >
-                  {link.name}
+                  <span className="relative z-10">{link.name}</span>
+                  {isTarget && (
+                    <motion.div
+                      layoutId="nav-pill"
+                      className={`absolute inset-0 rounded-md -z-10 ${active ? 'bg-foreground' : 'bg-foreground/10'}`}
+                      transition={{ type: "spring", stiffness: 400, damping: 30 }}
+                    />
+                  )}
                 </Link>
               );
             })}
