@@ -254,4 +254,29 @@ const CollectionDetailPage = () => {
   );
 };
 
+export const CollectionDetailPageSkeleton = () => {
+  return (
+    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12">
+      <div className="shared-container w-full flex flex-col px-6">
+        <div className="flex justify-between items-center w-full mb-8">
+          <Skeleton className="h-3 w-24 bg-secondary" style={{ borderRadius: 0 }} />
+        </div>
+        
+        <div className="flex flex-col mb-8 w-full gap-4">
+          <div className="flex items-center justify-between mb-2">
+            <Skeleton className="h-3 w-16 bg-secondary" style={{ borderRadius: 0 }} />
+            <Skeleton className="h-3 w-16 bg-secondary" style={{ borderRadius: 0 }} />
+          </div>
+          <Skeleton className="h-6 w-3/4 bg-secondary" style={{ borderRadius: 0 }} />
+          <Skeleton className="h-4 w-1/2 bg-secondary mt-2" style={{ borderRadius: 0 }} />
+        </div>
+
+        <div className="w-full border-b border-border mb-12"></div>
+
+        <SkeletonGrid count={6} />
+      </div>
+    </div>
+  );
+};
+
 export default CollectionDetailPage;

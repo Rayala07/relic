@@ -18,14 +18,14 @@ function parseDomain(url) {
 const ItemDetailPage = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  
+
   const [item, setItem] = useState(null);
   const [related, setRelated] = useState([]);
   const [collections, setCollections] = useState([]);
-  
+
   const [addingCollectionId, setAddingCollectionId] = useState(null);
   const [addedCollectionId, setAddedCollectionId] = useState(null);
-  
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -48,11 +48,11 @@ const ItemDetailPage = () => {
             throw new Error("Item not found");
           }
           setItem(itemRes.data);
-          
+
           if (relatedRes && relatedRes.success) {
             setRelated(relatedRes.data);
           }
-          
+
           if (collRes && collRes.success && collRes.data) {
             setCollections(collRes.data.filter(c => c.type !== "auto"));
           }
@@ -77,7 +77,7 @@ const ItemDetailPage = () => {
           <div className="flex-1 flex flex-col gap-8 w-full">
             <div className="flex flex-col">
               <Skeleton className="h-3 w-20 mb-6 rounded-none" />
-              
+
               <div className="flex items-center justify-between mb-4">
                 <Skeleton className="h-3 w-16 rounded-none" />
                 <div className="flex items-center gap-4">
@@ -88,7 +88,7 @@ const ItemDetailPage = () => {
 
               <Skeleton className="h-8 w-3/4 rounded-none" />
               <Skeleton className="h-8 w-1/2 mt-2 rounded-none" />
-              
+
               <Skeleton className="h-3 w-32 mt-6 rounded-none" />
             </div>
 
@@ -110,6 +110,21 @@ const ItemDetailPage = () => {
                 <Skeleton className="h-6 w-16 rounded-none" />
                 <Skeleton className="h-6 w-20 rounded-none" />
                 <Skeleton className="h-6 w-14 rounded-none" />
+              </div>
+            </div>
+
+            {/* Source Skeleton */}
+            <div className="flex flex-col gap-4 pt-8 border-t border-border">
+              <Skeleton className="h-3 w-16 rounded-none" />
+              <Skeleton className="h-4 w-48 mt-2 rounded-none" />
+            </div>
+
+            {/* Recommended Searches Skeleton */}
+            <div className="flex flex-col gap-4 pt-8 border-t border-border mb-8">
+              <Skeleton className="h-3 w-40 rounded-none" />
+              <div className="flex flex-col gap-3 mt-2">
+                <Skeleton className="h-12 w-full rounded-none" />
+                <Skeleton className="h-12 w-full rounded-none" />
               </div>
             </div>
           </div>
@@ -144,9 +159,9 @@ const ItemDetailPage = () => {
         <p className="text-destructive uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
           {error || "Item not found"}
         </p>
-        <Link 
+        <Link
           to="/library"
-          className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase" 
+          className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase"
           style={{ fontSize: "11px", letterSpacing: "0.08em" }}
         >
           ← RETRN TO LIBRARY
@@ -156,7 +171,7 @@ const ItemDetailPage = () => {
   }
 
   const { type, content = {}, ai = {}, createdAt, url } = item;
-  
+
   const typeMap = {
     webpage: "WEBPAGE",
     pdf: "DOCS",
@@ -195,27 +210,27 @@ const ItemDetailPage = () => {
   return (
     <div className="w-full bg-background flex justify-center py-6">
       <div className="shared-container flex flex-col lg:flex-row gap-[64px] items-start">
-        
+
         {/* LEFT COLUMN: Main Content */}
         <div className="flex-1 flex flex-col gap-8 w-full">
-          
+
           {/* Header Block */}
           <div className="flex flex-col">
-            <Link 
+            <Link
               to="/library"
-              className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase self-start mb-6" 
+              className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase self-start mb-6"
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               ← LIBRARY
             </Link>
 
 
-            
+
             <div className="flex items-center justify-between text-muted-foreground uppercase mb-4" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               <span>{displayType}</span>
               <div className="flex items-center gap-4">
                 <span>{timeAgo(createdAt)}</span>
-                <button 
+                <button
                   onClick={handleDelete}
                   disabled={isDeleting}
                   className="text-muted-foreground hover:text-destructive transition-colors duration-150 cursor-pointer disabled:opacity-50"
@@ -229,7 +244,7 @@ const ItemDetailPage = () => {
             <h1 className="text-foreground leading-snug" style={{ fontSize: "20px", letterSpacing: "0.01em", fontWeight: 500 }}>
               {title}
             </h1>
-            
+
             {content.author && (
               <p className="text-muted-foreground uppercase mt-3" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
                 {content.author}
@@ -257,8 +272,8 @@ const ItemDetailPage = () => {
               </h2>
               <div className="flex flex-wrap gap-2">
                 {tags.map((tag, idx) => (
-                  <span 
-                    key={idx} 
+                  <span
+                    key={idx}
                     className="border border-border text-muted-foreground uppercase"
                     style={{ fontSize: "11px", letterSpacing: "0.08em", padding: "4px 8px", borderRadius: 0 }}
                   >
@@ -272,9 +287,9 @@ const ItemDetailPage = () => {
           {/* Source Block */}
           <div className="flex flex-col gap-4 pt-8 border-t border-border">
             <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
-              SOURCE
+              YOUR SAVED LINK
             </h2>
-            <a 
+            <a
               href={url}
               target="_blank"
               rel="noreferrer"
@@ -285,11 +300,38 @@ const ItemDetailPage = () => {
             </a>
           </div>
 
+          {/* Recommended Searches Block */}
+          {tags.length > 0 && (
+            <div className="flex flex-col gap-4 pt-8 border-t border-border mb-8">
+              <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+                RECOMMENDED SEARCHES
+              </h2>
+              <div className="flex flex-col gap-3">
+                {tags.slice(0, 3).map((tag, idx) => (
+                  <a
+                    key={idx}
+                    href={`https://www.google.com/search?q=${encodeURIComponent(tag)}`}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="group flex items-center justify-between p-4 border border-border hover:border-foreground transition-colors duration-150 no-underline"
+                  >
+                    <span className="text-foreground uppercase line-clamp-1" style={{ fontSize: "11px", letterSpacing: "0.08em", fontWeight: 500 }}>
+                      {tag}
+                    </span>
+                    <span className="text-muted-foreground group-hover:text-foreground transition-colors duration-150">
+                      ↗
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </div>
+          )}
+
         </div>
 
         {/* RIGHT COLUMN: Sidebar */}
         <div className="w-full lg:w-[280px] flex flex-col gap-12 shrink-0 lg:sticky lg:top-[96px]">
-          
+
           {/* ADD TO COLLECTION */}
           {collections.length > 0 && (
             <div className="flex flex-col gap-6">
@@ -300,7 +342,7 @@ const ItemDetailPage = () => {
                 {collections.map(col => {
                   const isAdding = addingCollectionId === col._id;
                   const isAdded = addedCollectionId === col._id;
-                  
+
                   return (
                     <button
                       key={col._id}
@@ -323,7 +365,7 @@ const ItemDetailPage = () => {
           <h2 className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
             RELATED
           </h2>
-          
+
           {related.length === 0 ? (
             <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               NO RELATED ITEMS
@@ -334,8 +376,8 @@ const ItemDetailPage = () => {
                 const relDisplayType = typeMap[rel.type] || "WEBPAGE";
                 const relTitle = rel.title || rel.content?.title || parseDomain(rel.url);
                 return (
-                  <Link 
-                    key={rel._id} 
+                  <Link
+                    key={rel._id}
                     to={`/items/${rel._id}`}
                     className="group flex flex-col gap-2 p-4 border border-border hover:border-foreground transition-colors duration-150"
                   >

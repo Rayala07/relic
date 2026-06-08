@@ -270,4 +270,25 @@ const CollectionListPage = () => {
   );
 };
 
+export const CollectionListPageSkeleton = () => {
+  return (
+    <div className="min-h-[calc(100vh-72px)] w-full bg-background flex justify-center py-12">
+      <div className="shared-container w-full flex flex-col items-center px-6">
+        {/* HEADER ROW */}
+        <div className="w-full flex items-end justify-between pb-6 mb-8 mt-[16px] border-b border-border">
+          <div className="flex flex-col gap-2">
+            <h1 className="text-foreground uppercase" style={{ fontSize: "20px", fontWeight: 500, letterSpacing: "0.01em" }}>COLLECTIONS</h1>
+            <div className="h-[16px] w-[90px] bg-foreground/10 animate-pulse mt-1" />
+          </div>
+          <div className="h-[43px] w-[140px] bg-primary/20 animate-pulse" />
+        </div>
+        {/* LOADING STATE */}
+        <div className="w-full mt-12">
+          <SkeletonGrid count={6} />
+        </div>
+      </div>
+    </div>
+  );
+};
+
 export default CollectionListPage;

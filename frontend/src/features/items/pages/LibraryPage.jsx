@@ -216,4 +216,27 @@ const LibraryPage = () => {
   );
 };
 
+export const LibraryPageSkeleton = () => {
+  return (
+    <div className="min-h-[calc(100vh-72px)] bg-background flex justify-center py-12">
+      <div className="shared-container">
+        {/* TOP BAR */}
+        <div className="flex flex-row items-end justify-between border-b border-border pb-6 mb-8 w-full gap-6">
+          <div className="flex flex-col gap-1 shrink-0">
+            <h1 className="text-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
+              LIBRARY
+            </h1>
+            <div className="h-[16px] w-[60px] bg-foreground/10 animate-pulse mt-1" />
+          </div>
+          <div className="flex flex-wrap gap-4 items-center justify-end">
+            <div className="h-[16px] w-[200px] bg-foreground/10 animate-pulse" />
+          </div>
+        </div>
+        {/* LOADING STATE */}
+        <SkeletonGrid count={6} />
+      </div>
+    </div>
+  );
+};
+
 export default LibraryPage;

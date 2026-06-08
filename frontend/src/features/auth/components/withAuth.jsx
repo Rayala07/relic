@@ -3,11 +3,14 @@ import { Navigate } from "react-router-dom";
 import { useAuth } from "@clerk/clerk-react";
 import { Skeleton } from "../../../components/ui/skeleton";
 
-const withAuth = (WrappedComponent) => {
+const withAuth = (WrappedComponent, FallbackSkeleton = null) => {
   return (props) => {
     const { isLoaded, isSignedIn } = useAuth();
 
     if (!isLoaded) {
+      if (FallbackSkeleton) {
+        return <FallbackSkeleton />;
+      }
       // Show loading pattern using exactly the same Library page loader style
       return (
         <div className="min-h-screen bg-background flex items-center justify-center p-6">

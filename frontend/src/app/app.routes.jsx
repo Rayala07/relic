@@ -1,14 +1,14 @@
 import { createBrowserRouter, Outlet, useLocation } from "react-router-dom";
 import Register from "../features/auth/pages/Register";
 import Login from "../features/auth/pages/Login";
-import SavePage from "../features/items/pages/SavePage";
-import LibraryPage from "../features/items/pages/LibraryPage";
+import SavePage, { SavePageSkeleton } from "../features/items/pages/SavePage";
+import LibraryPage, { LibraryPageSkeleton } from "../features/items/pages/LibraryPage";
 import ItemDetailPage from "../features/items/pages/ItemDetailPage";
 import Navbar from "./components/Navbar";
 import SearchPage from "../features/items/pages/SearchPage";
 import HomePage from "./pages/HomePage";
-import CollectionListPage from "../features/collections/pages/CollectionListPage";
-import CollectionDetailPage from "../features/collections/pages/CollectionDetailPage";
+import CollectionListPage, { CollectionListPageSkeleton } from "../features/collections/pages/CollectionListPage";
+import CollectionDetailPage, { CollectionDetailPageSkeleton } from "../features/collections/pages/CollectionDetailPage";
 
 import withAuth from "../features/auth/components/withAuth";
 import withGuest from "../features/auth/components/withGuest";
@@ -28,12 +28,12 @@ const LayoutWrapper = () => {
 };
 
 // Wrap pages properly
-const ProtectedSave = withAuth(SavePage);
-const ProtectedLibrary = withAuth(LibraryPage);
+const ProtectedSave = withAuth(SavePage, SavePageSkeleton);
+const ProtectedLibrary = withAuth(LibraryPage, LibraryPageSkeleton);
 const ProtectedItem = withAuth(ItemDetailPage);
 const ProtectedSearch = withAuth(SearchPage);
-const ProtectedCollectionsList = withAuth(CollectionListPage);
-const ProtectedCollectionDetail = withAuth(CollectionDetailPage);
+const ProtectedCollectionsList = withAuth(CollectionListPage, CollectionListPageSkeleton);
+const ProtectedCollectionDetail = withAuth(CollectionDetailPage, CollectionDetailPageSkeleton);
 const GuestLogin = withGuest(Login);
 const GuestRegister = withGuest(Register);
 
