@@ -56,7 +56,7 @@ const CollectionGaps = ({ collectionId }) => {
         <div className="w-full border-t border-border mt-6 mb-2"></div>
 
         {/* SUGGESTIONS LIST */}
-        <div className="flex flex-col w-full">
+        <div className="flex flex-col w-full max-w-[480px]">
           {data.suggestions.map((suggestion, idx) => {
             const isLast = idx === data.suggestions.length - 1;
             return (
@@ -64,13 +64,13 @@ const CollectionGaps = ({ collectionId }) => {
                 key={idx} 
                 className={`flex justify-between items-center py-4 ${!isLast ? "border-b border-border" : ""}`}
               >
-                {/* Left side */}
+                {/* Left side text */}
                 <div className="flex items-center text-foreground" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 400 }}>
                   <span className="text-muted-foreground mr-3">→</span>
                   {suggestion}
                 </div>
 
-                {/* Right side */}
+                {/* Search link right-aligned within the compact container */}
                 <a
                   href={`https://www.google.com/search?q=${encodeURIComponent(suggestion)}`}
                   target="_blank"
@@ -78,7 +78,7 @@ const CollectionGaps = ({ collectionId }) => {
                   className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase whitespace-nowrap ml-4"
                   style={{ fontSize: "11px", letterSpacing: "0.08em" }}
                 >
-                  Search →
+                  Search ↗
                 </a>
               </div>
             );

@@ -89,11 +89,14 @@ async function extractionPipeline(itemId) {
       return;
     }
 
+    // Fetch the user's existing tags to enforce taxonomy reuse
+    const userTags = await Item.distinct("ai.tags", { user: item.user });
+
     // Run embed, summarise, and tag in parallel — no dependency between them
     const [vectors, summary, tags] = await Promise.all([
       embedChunks(chunks),
       generateSummary(translatedContent.body),
-      generateTags(translatedContent.body),
+      generateTags(translatedContent.body, userTags),
     ]);
 
     // Guard: Mistral should return one vector per chunk — if not, something went

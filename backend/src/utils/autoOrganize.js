@@ -5,7 +5,7 @@ import Item from "../models/item.model.js";
 const MIN_ITEMS_FOR_COLLECTION = 2;
 
 // Minimum number of tags two items must share to be considered related
-const MIN_SHARED_TAGS = 2;
+const MIN_SHARED_TAGS = 1;
 
 /**
  * Checks a finished item's tags and automatically adds it to an existing
