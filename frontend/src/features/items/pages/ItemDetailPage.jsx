@@ -3,6 +3,7 @@ import { useParams, Link, useNavigate } from "react-router-dom";
 import itemService from "../services/item.service";
 import { timeAgo } from "../utils/timeAgo";
 import { RiDeleteBin4Fill } from "@remixicon/react";
+import { Skeleton } from "../../../components/ui/skeleton";
 
 function parseDomain(url) {
   try {
@@ -70,10 +71,69 @@ const ItemDetailPage = () => {
 
   if (loading) {
     return (
-      <div className="min-h-[calc(100vh-72px)] bg-background flex items-center justify-center p-6">
-        <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
-          LOADING
-        </p>
+      <div className="w-full bg-background flex justify-center py-6 min-h-[calc(100vh-72px)]">
+        <div className="shared-container flex flex-col lg:flex-row gap-[64px] items-start">
+          {/* LEFT COLUMN: Main Content Skeleton */}
+          <div className="flex-1 flex flex-col gap-8 w-full">
+            <div className="flex flex-col">
+              <Skeleton className="h-3 w-20 mb-6 rounded-none" />
+              
+              <div className="flex items-center justify-between mb-4">
+                <Skeleton className="h-3 w-16 rounded-none" />
+                <div className="flex items-center gap-4">
+                  <Skeleton className="h-3 w-24 rounded-none" />
+                  <Skeleton className="h-4 w-4 rounded-none" />
+                </div>
+              </div>
+
+              <Skeleton className="h-8 w-3/4 rounded-none" />
+              <Skeleton className="h-8 w-1/2 mt-2 rounded-none" />
+              
+              <Skeleton className="h-3 w-32 mt-6 rounded-none" />
+            </div>
+
+            {/* Summary Skeleton */}
+            <div className="flex flex-col gap-4 pt-8 border-t border-border">
+              <Skeleton className="h-3 w-16 rounded-none" />
+              <div className="flex flex-col gap-2 mt-2">
+                <Skeleton className="h-4 w-full rounded-none" />
+                <Skeleton className="h-4 w-[90%] rounded-none" />
+                <Skeleton className="h-4 w-[95%] rounded-none" />
+                <Skeleton className="h-4 w-[80%] rounded-none" />
+              </div>
+            </div>
+
+            {/* Tags Skeleton */}
+            <div className="flex flex-col gap-4 pt-8 border-t border-border">
+              <Skeleton className="h-3 w-12 rounded-none" />
+              <div className="flex gap-2 mt-2">
+                <Skeleton className="h-6 w-16 rounded-none" />
+                <Skeleton className="h-6 w-20 rounded-none" />
+                <Skeleton className="h-6 w-14 rounded-none" />
+              </div>
+            </div>
+          </div>
+
+          {/* RIGHT COLUMN: Sidebar Skeleton */}
+          <div className="w-full lg:w-[280px] flex flex-col gap-12 shrink-0 lg:sticky lg:top-[96px]">
+            <div className="flex flex-col gap-6">
+              <Skeleton className="h-3 w-32 rounded-none" />
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-10 w-full rounded-none" />
+                <Skeleton className="h-10 w-full rounded-none" />
+                <Skeleton className="h-10 w-full rounded-none" />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-6">
+              <Skeleton className="h-3 w-16 rounded-none" />
+              <div className="flex flex-col gap-3">
+                <Skeleton className="h-[72px] w-full rounded-none" />
+                <Skeleton className="h-[72px] w-full rounded-none" />
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }

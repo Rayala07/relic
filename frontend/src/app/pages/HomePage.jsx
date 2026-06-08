@@ -107,7 +107,7 @@ const HomePage = () => {
         <div className="flex flex-col items-center text-center w-full relative z-10" style={{ maxWidth: "800px", marginTop: "-5vh" }}>
           
           <h1 
-            className="text-foreground flex flex-col items-center mb-8" 
+            className="text-foreground flex flex-col items-center mb-10" 
             style={{ 
               fontSize: "clamp(48px, 8vw, 84px)", 
               fontWeight: 600, 
@@ -121,7 +121,7 @@ const HomePage = () => {
 
           <p 
             ref={subtextRef} 
-            className="mb-14 italic" 
+            className="mb-18" 
             style={{ 
               fontFamily: "'Playfair Display', serif",
               color: "var(--foreground)",
