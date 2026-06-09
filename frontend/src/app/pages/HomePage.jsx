@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { animate, inView, stagger } from "motion";
 import { useUser } from "@clerk/clerk-react";
+import FluidAccordion from "./components/FluidAccordion";
 
 const HomePage = () => {
   const { user, isLoaded } = useUser();
@@ -164,32 +165,7 @@ const HomePage = () => {
           HOW IT WORKS
         </h2>
 
-        <div ref={stepsRef} className="flex flex-col lg:flex-row w-full gap-12 lg:gap-8">
-          {/* STEP 1 */}
-          <div className="flex-1 flex flex-col gap-4 step-item" style={{ opacity: 0 }}>
-            <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>01</span>
-            <h3 className="text-foreground" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 500 }}>SAVE</h3>
-            <p className="text-muted-foreground leading-relaxed" style={{ fontSize: "14px", letterSpacing: "0.01em" }}>
-              Paste any URL — article, PDF, YouTube, or tweet. RELIC extracts the content.
-            </p>
-          </div>
-          {/* STEP 2 */}
-          <div className="flex-1 flex flex-col gap-4 step-item" style={{ opacity: 0 }}>
-            <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>02</span>
-            <h3 className="text-foreground" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 500 }}>UNDERSTAND</h3>
-            <p className="text-muted-foreground leading-relaxed" style={{ fontSize: "14px", letterSpacing: "0.01em" }}>
-              AI reads it, tags it, and summarizes it. Automatically. No effort from you.
-            </p>
-          </div>
-          {/* STEP 3 */}
-          <div className="flex-1 flex flex-col gap-4 step-item" style={{ opacity: 0 }}>
-            <span className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>03</span>
-            <h3 className="text-foreground" style={{ fontSize: "14px", letterSpacing: "0.01em", fontWeight: 500 }}>FIND</h3>
-            <p className="text-muted-foreground leading-relaxed" style={{ fontSize: "14px", letterSpacing: "0.01em" }}>
-              Search with any thought. RELIC finds what you saved even if you forget the words.
-            </p>
-          </div>
-        </div>
+        <FluidAccordion />
       </section>
 
       {/* ======================= */}
