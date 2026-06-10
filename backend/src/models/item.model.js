@@ -121,6 +121,29 @@ itemSchema.index({ user: 1, "ai.tags": 1 });
 // Covers queries like Item.find({ user, type: "youtube" })
 itemSchema.index({ user: 1, type: 1 });
 
+// Index 6: Full-text search index for hybrid search Layer 1.
+// Enables MongoDB $text operator across the most important human-readable fields.
+// search.service.js uses this to build a fast keyword candidate set before
+// querying Pinecone, which eliminates irrelevant vector matches at zero API cost.
+// Weights: title and tags are the strongest signal; summary and excerpt are supplementary.
+itemSchema.index(
+  {
+    title:           "text",
+    "ai.tags":       "text",
+    "ai.summary":    "text",
+    "content.excerpt": "text",
+  },
+  {
+    weights: {
+      title:             10,
+      "ai.tags":          8,
+      "ai.summary":       5,
+      "content.excerpt":  3,
+    },
+    name: "full_text_search",
+  }
+);
+
 // ─────────────────────────────────────────────────────────────────────────────
 
 const Item = mongoose.model("Item", itemSchema);

@@ -6,8 +6,9 @@ import { semanticSearch } from "../services/search.service.js";
  * Handles GET /api/search?q=<query>
  *
  * Validates that q is present and non-empty, then delegates entirely
- * to the search service. Follows the same pattern as item.controller.js —
- * controller handles HTTP concerns, service handles business logic.
+ * to the search service. The service now uses a 3-layer hybrid engine
+ * (keyword + vector + RRF) so no threshold is passed here — the RRF
+ * score is the authoritative ranking signal.
  *
  * @param {import('express').Request} req
  * @param {import('express').Response} res
@@ -25,7 +26,6 @@ export const searchItems = async (req, res) => {
   try {
     const results = await semanticSearch(query, req.userId, {
       limit: 10,
-      threshold: 0.70,
     });
 
     return res.status(200).json({

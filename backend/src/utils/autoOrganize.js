@@ -1,5 +1,6 @@
 import Collection from "../models/collection.model.js";
 import Item from "../models/item.model.js";
+import { generateCollectionName } from "./collectionNamer.js";
 
 // Minimum number of items that must share tags before an auto-collection is created
 const MIN_ITEMS_FOR_COLLECTION = 2;
@@ -84,10 +85,6 @@ export async function autoOrganizeItem(itemId, userId) {
         .slice(0, 3)
         .map(([tag]) => tag);
 
-      const collectionName = topSharedTags
-        .map((t) => t.charAt(0).toUpperCase() + t.slice(1))
-        .join(" + ");
-
       // Race condition guard — don't create a duplicate
       const alreadyExists = await Collection.findOne({
         user: userId,
@@ -97,6 +94,18 @@ export async function autoOrganizeItem(itemId, userId) {
 
       if (!alreadyExists) {
         const allItemIds = [itemId, ...qualifyingItems.map((i) => i._id)];
+
+        // Fetch the actual human-readable titles of all items being grouped.
+        // The LLM reads these to generate a contextually accurate name instead
+        // of mechanically joining raw taxonomy tags like "Fashion + Clothing + Shirt".
+        const itemDocs = await Item.find(
+          { _id: { $in: allItemIds } },
+          { title: 1 }
+        ).lean();
+        const itemTitles = itemDocs.map((d) => d.title).filter(Boolean);
+
+        // Generate a sharp, human-readable name via Groq LLaMA (~200ms)
+        const collectionName = await generateCollectionName(itemTitles, topSharedTags);
 
         await Collection.create({
           name: collectionName,
