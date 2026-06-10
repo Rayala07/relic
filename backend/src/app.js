@@ -20,13 +20,13 @@ app.use(
         process.env.FRONTEND_URL,
         "http://localhost:5173",
       ];
-      
+
       // Allow requests with no origin (like mobile apps or curl)
       if (!origin) return callback(null, true);
-      
+
       // Check if origin (ignoring trailing slash) is in allowed list
       const sanitizedOrigin = origin.replace(/\/$/, "");
-      const isAllowed = allowedOrigins.some(allowed => 
+      const isAllowed = allowedOrigins.some(allowed =>
         allowed && allowed.replace(/\/$/, "") === sanitizedOrigin
       );
 
@@ -56,10 +56,9 @@ const aiLimiter = rateLimit({
   message: { success: false, message: "Too many requests, slow down" },
 });
 
-app.get("/api/health", (req, res) => {
-  res.status(200).json({ success: true, status: "ok" });
+app.get("/", (req, res) => {
+  res.status(200).send("Server is running");
 });
-
 
 app.use("/api/items", aiLimiter, itemRoutes);
 app.use("/api/search", aiLimiter, searchRoutes);

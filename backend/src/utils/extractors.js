@@ -21,6 +21,53 @@ import { PDFParse } from "pdf-parse";
  *   2. Fall back to OG meta tags (og:title / og:description) — always present
  */
 
+// ── Known bot-protected domains — skip direct HTTP fetch entirely ────────────
+// These sites return HTTP 200 with a fake maintenance/block page when they
+// detect a non-browser request. Direct fetch always fails for them.
+// Jina's infrastructure uses real headless browsers that bypass this.
+const DIRECT_FETCH_BLOCKED_DOMAINS = new Set([
+  "myntra.com",
+  "flipkart.com",
+  "amazon.in",
+  "amazon.com",
+  "nykaa.com",
+  "ajio.com",
+  "meesho.com",
+  "snapdeal.com",
+  "tatacliq.com",
+  "reliancedigital.in",
+]);
+
+// ── Poisoned content detector ─────────────────────────────────────────────────
+// Some sites (especially e-commerce) return HTTP 200 with a fake maintenance
+// page instead of a real 403. The extractor happily parses it as real content.
+// This function fingerprints the most common "trap page" signals in the first
+// 400 characters of extracted text, triggering a Jina escalation.
+const POISON_FINGERPRINTS = [
+  "site maintenance",
+  "under maintenance",
+  "contact your administrator",
+  "contact the administrator",
+  "temporarily unavailable",
+  "will be back soon",
+  "we'll be back",
+  "we are back soon",
+  "maintenance mode",
+  "service unavailable",
+  "access denied",
+  "enable javascript",
+  "please enable cookies",
+  "checking your browser",
+  "security check",
+  "ddos protection",
+  "just a moment",   // Cloudflare challenge page
+];
+
+function isPoisonedContent(body) {
+  const sample = body.slice(0, 600).toLowerCase();
+  return POISON_FINGERPRINTS.some((fp) => sample.includes(fp));
+}
+
 // ── Shared HTTP client ───────────────────────────────────────────────────────
 // Full browser-like headers to pass most basic bot detection.
 // User-Agent alone is not enough — sites also check Accept, Accept-Language, etc.
@@ -86,6 +133,19 @@ async function jinaFallback(url) {
 const MIN_BODY_WORDS = 200;
 
 export async function extractWebpage(url) {
+  // ── Domain blocklist check — skip direct fetch for known bot-protected sites ──
+  // Resolves the specific Myntra/Flipkart/Amazon class of bug where the site
+  // returns HTTP 200 with a fake maintenance page, poisoning the summary.
+  try {
+    const hostname = new URL(url).hostname.replace(/^www\./, "");
+    if (DIRECT_FETCH_BLOCKED_DOMAINS.has(hostname)) {
+      console.log(`[Extractor] ${hostname} is on the blocked-domain list — routing straight to Jina.`);
+      return jinaFallback(url);
+    }
+  } catch {
+    // malformed URL — let the fetch below fail naturally
+  }
+
   try {
     const { data: html } = await http.get(url);
 
@@ -101,6 +161,15 @@ export async function extractWebpage(url) {
         author:  article.byline,
         excerpt: article.excerpt,
       });
+
+      // ── Poisoned content check ──────────────────────────────────────────────
+      // Catches sites that return HTTP 200 with a fake maintenance/block page.
+      // Readability happily parses it — we need to detect and reject it.
+      if (isPoisonedContent(result.body)) {
+        console.log(`[Extractor] Poisoned content detected for ${url} — escalating to Jina.`);
+        return jinaFallback(url);
+      }
+
       const wordCount = result.body.split(" ").filter(Boolean).length;
 
       // If Readability found something but it's suspiciously short, the page
