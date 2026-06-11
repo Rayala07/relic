@@ -60,6 +60,10 @@ app.get("/", (req, res) => {
   res.status(200).send("Server is running");
 });
 
+app.get("/health", (req, res) => {
+  res.status(200).send("Health Check Passed");
+});
+
 app.use("/api/items", aiLimiter, itemRoutes);
 app.use("/api/search", aiLimiter, searchRoutes);
 app.use("/api/collections", aiLimiter, collectionRoutes);
