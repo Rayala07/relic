@@ -6,7 +6,8 @@ import { startResurfacerCron } from "./src/utils/resurfacer.js"; // Depends on q
 
 const REQUIRED_ENV_VARS = [
   'MONGO_URI',
-  'CLERK_SECRET_KEY',
+  'SUPABASE_URL',
+  'SUPABASE_ANON_KEY',
   'GEMINI_API_KEY',
   'MISTRAL_API_KEY',
   'PINECONE_API_KEY',

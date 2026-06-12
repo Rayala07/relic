@@ -1,61 +1,53 @@
-import { ClerkExpressRequireAuth, createClerkClient } from "@clerk/clerk-sdk-node";
+import axios from "axios";
 import User from "../models/user.model.js";
-import "dotenv/config";
-
-const clerkClient = createClerkClient({ secretKey: process.env.CLERK_SECRET_KEY });
 
 /**
- * Just-In-Time (JIT) Provisioning Middleware.
- * This runs after Clerk has verified the token.
- * It checks if the Clerk user exists in our MongoDB. If not, it creates them.
- */
-const syncUserToDatabase = async (req, res, next) => {
-  try {
-    const clerkId = req.auth?.userId;
-
-    if (!clerkId) {
-      return res.status(401).json({ success: false, message: "Authentication required" });
-    }
-
-    // Attach the clerkId to req.userId so all downstream controllers continue to work normally
-    req.userId = clerkId;
-
-    // Check if the user already exists in our MongoDB
-    const existingUser = await User.findById(clerkId);
-    
-    if (!existingUser) {
-      // User is new to our backend. Fetch their details from Clerk.
-      const clerkUser = await clerkClient.users.getUser(clerkId);
-      
-      const email = clerkUser.emailAddresses[0]?.emailAddress || "";
-      const name = clerkUser.firstName 
-        ? `${clerkUser.firstName} ${clerkUser.lastName || ""}`.trim()
-        : email.split("@")[0] || "Unknown User";
-
-      // Create them in our database using the Clerk ID as the primary key
-      await User.create({
-        _id: clerkId,
-        name,
-        email,
-      });
-      
-      console.log(`[AUTH] JIT Provisioned new user: ${clerkId}`);
-    }
-
-    next();
-  } catch (error) {
-    console.error("[AUTH] JIT Provisioning Error:", error);
-    return res.status(500).json({ success: false, message: "Internal server error during auth sync" });
-  }
-};
-
-/**
- * We export verifyToken as an array of middlewares.
- * Express allows arrays of middlewares to be passed to routes.
- * 1. ClerkExpressRequireAuth checks the Authorization Bearer token.
- * 2. syncUserToDatabase ensures the user exists in MongoDB.
+ * Verifies the Supabase JWT token and attaches the user ID to the request.
+ * Uses the Supabase REST API to guarantee the token hasn't been revoked.
  */
 export const verifyToken = [
-  ClerkExpressRequireAuth(),
-  syncUserToDatabase
+  async (req, res, next) => {
+    try {
+      const authHeader = req.headers.authorization;
+      if (!authHeader || !authHeader.startsWith("Bearer ")) {
+        return res.status(401).json({ success: false, message: "Authentication required" });
+      }
+
+      const token = authHeader.split(" ")[1];
+
+      // Call Supabase API to get the user and verify the token is active
+      const response = await axios.get(`${process.env.SUPABASE_URL}/auth/v1/user`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          apikey: process.env.SUPABASE_ANON_KEY,
+        },
+      });
+
+      const supabaseUser = response.data;
+      const supabaseUserId = supabaseUser.id;
+      
+      // Attach the ID for downstream controllers
+      req.userId = supabaseUserId;
+
+      // JIT Provisioning: Ensure the user exists in our MongoDB
+      const existingUser = await User.findById(supabaseUserId);
+      if (!existingUser) {
+        // Extract basic details
+        const email = supabaseUser.email || "";
+        const name = supabaseUser.user_metadata?.first_name || email.split("@")[0] || "Unknown User";
+
+        await User.create({
+          _id: supabaseUserId,
+          name,
+          email,
+        });
+        console.log(`[AUTH] JIT Provisioned new user: ${supabaseUserId}`);
+      }
+
+      next();
+    } catch (error) {
+      console.error("[AUTH] JWT Verification Error:", error.response?.data || error.message);
+      return res.status(401).json({ success: false, message: "Invalid or expired token" });
+    }
+  }
 ];

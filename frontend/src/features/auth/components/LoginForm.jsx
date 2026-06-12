@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useSignIn } from "@clerk/clerk-react";
+import { supabase } from "../../../config/supabaseClient";
 
 const LoginForm = () => {
-  const { isLoaded, signIn, setActive } = useSignIn();
+  const isLoaded = true; // Supabase is always loaded
+  
   const navigate = useNavigate();
   
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -23,27 +24,17 @@ const LoginForm = () => {
     setError("");
 
     try {
-      const result = await signIn.create({
-        identifier: formData.email,
+      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
         password: formData.password,
       });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        navigate("/");
-      } else {
-        // Handle other states like 2FA if enabled in Clerk dashboard
-        console.warn("Sign in incomplete:", result);
-        setError("Additional verification required. Check Clerk settings.");
-      }
+      if (signInError) throw signInError;
+      
+      navigate("/");
     } catch (err) {
       console.error("Login Error:", err);
-      // Clerk errors usually come back in err.errors array
-      if (err.errors && err.errors.length > 0) {
-        setError(err.errors[0].message);
-      } else {
-        setError("Invalid email or password");
-      }
+      setError("Invalid email or password");
     } finally {
       setLoading(false);
     }

@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { useSignUp } from "@clerk/clerk-react";
+import { supabase } from "../../../config/supabaseClient";
 
 const RegisterForm = () => {
-  const { isLoaded, signUp, setActive } = useSignUp();
+  const isLoaded = true; // Supabase is always loaded
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({ name: "", email: "", password: "" });
@@ -29,25 +29,25 @@ const RegisterForm = () => {
     setError("");
 
     try {
-      await signUp.create({
-        firstName: formData.name,
-        emailAddress: formData.email,
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email: formData.email,
         password: formData.password,
+        options: {
+          data: {
+            first_name: formData.name,
+          }
+        }
       });
 
-      setStatusText("SENDING CODE...");
-      // Send the email verification code
-      await signUp.prepareEmailAddressVerification({ strategy: "email_code" });
+      if (signUpError) throw signUpError;
 
-      // Change the UI to show the OTP input
+      // Supabase sends the email automatically if Email Confirmations are enabled in the dashboard.
+      // We will show the OTP verification screen.
+      setStatusText("SENDING CODE...");
       setPendingVerification(true);
     } catch (err) {
       console.error("Register Error:", err);
-      if (err.errors && err.errors.length > 0) {
-        setError(err.errors[0].message);
-      } else {
-        setError("Error creating account");
-      }
+      setError(err.message || "Error creating account");
       setStatusText("SIGN UP");
     } finally {
       setLoading(false);
@@ -62,22 +62,18 @@ const RegisterForm = () => {
     setError("");
 
     try {
-      const result = await signUp.attemptEmailAddressVerification({ code });
+      const { data, error: verifyError } = await supabase.auth.verifyOtp({
+        email: formData.email,
+        token: code,
+        type: 'signup'
+      });
 
-      if (result.status === "complete") {
-        await setActive({ session: result.createdSessionId });
-        navigate("/");
-      } else {
-        console.warn("Verify incomplete:", result);
-        setError("Verification incomplete. Please check your code.");
-      }
+      if (verifyError) throw verifyError;
+
+      navigate("/");
     } catch (err) {
       console.error("Verify Error:", err);
-      if (err.errors && err.errors.length > 0) {
-        setError(err.errors[0].message);
-      } else {
-        setError("Invalid verification code");
-      }
+      setError(err.message || "Invalid verification code");
     } finally {
       setLoading(false);
     }
@@ -109,7 +105,7 @@ const RegisterForm = () => {
               required
               value={code}
               onChange={(e) => { setCode(e.target.value); setError(""); }}
-              placeholder="enter 6-digit code"
+              placeholder="enter 8-digit code"
               disabled={loading}
               className="w-full bg-background text-foreground border-0 border-b border-border focus:border-b focus:border-white outline-none pb-4 pt-0 px-0 transition-colors duration-150 disabled:opacity-50"
               style={{ fontSize: "14px", letterSpacing: "0.01em", borderRadius: 0, color: "var(--foreground)", caretcolor: "var(--foreground)" }}

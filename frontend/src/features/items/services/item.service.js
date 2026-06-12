@@ -1,18 +1,18 @@
 import axios from "axios";
 
-const API_URL = import.meta.env.VITE_API_URL || "http://localhost:3000/api";
+import { supabase } from "../../../config/supabaseClient";
+
+const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 
 const apiClient = axios.create({
   baseURL: API_URL,
 });
 
-// Intercept all requests and attach the Clerk token dynamically
+// Intercept all requests and attach the Supabase token dynamically
 apiClient.interceptors.request.use(async (config) => {
-  if (window.Clerk && window.Clerk.session) {
-    const token = await window.Clerk.session.getToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+  const { data: { session } } = await supabase.auth.getSession();
+  if (session?.access_token) {
+    config.headers.Authorization = `Bearer ${session.access_token}`;
   }
   return config;
 });
@@ -46,7 +46,7 @@ const itemService = {
     const response = await apiClient.delete(`/items/delete/${id}`);
     return response.data;
   },
-  
+
   // ========================
   // COLLECTIONS ENDPOINTS
   // ========================
@@ -74,7 +74,7 @@ const itemService = {
     const response = await apiClient.post(`/collections/${collectionId}/items`, { itemId });
     return response.data;
   },
-  
+
   // ========================
   // STATS ENDPOINTS
   // ========================

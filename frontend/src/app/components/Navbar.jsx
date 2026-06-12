@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
-import { useUser, useClerk } from "@clerk/clerk-react";
+import { useUser, useAuth } from "../../features/auth/components/AuthProvider";
 import { Search } from "lucide-react";
 import { ModeToggle } from "../../components/ModeToggle";
 import { motion } from "motion/react";
@@ -8,7 +8,7 @@ import { motion } from "motion/react";
 const Navbar = () => {
   const { pathname } = useLocation();
   const { user, isLoaded } = useUser();
-  const { signOut } = useClerk();
+  const { signOut } = useAuth();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);

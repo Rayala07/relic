@@ -1,10 +1,11 @@
 import React from "react";
 import { Navigate } from "react-router-dom";
-import { useAuth } from "@clerk/clerk-react";
+import { useAuth } from "./AuthProvider";
 
 const withGuest = (WrappedComponent) => {
   return (props) => {
-    const { isLoaded, isSignedIn } = useAuth();
+    const { isLoaded, user } = useAuth();
+    const isSignedIn = !!user;
 
     if (!isLoaded) {
       // Do not flash anything during login state check as requested

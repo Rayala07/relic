@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { animate, inView, stagger } from "motion";
-import { useUser } from "@clerk/clerk-react";
+import { useUser } from "../../features/auth/components/AuthProvider";
 import FluidAccordion from "./components/FluidAccordion";
 
 const HomePage = () => {
