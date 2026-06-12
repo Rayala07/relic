@@ -2,6 +2,46 @@ import Item from "../models/item.model.js";
 import detectType from "../utils/detectType.js";
 import { deleteChunks, findRelatedItems } from "../utils/pinecone.js";
 import { pipelineQueue } from "../services/queue.js";
+import Groq from "groq-sdk";
+
+// ── Auto-Title Generator ──────────────────────────────────────────────────────
+// Called when the user saves a link without providing a title.
+// Uses Groq (llama-3.1-8b-instant) — extremely fast LPU inference,
+// far more reliable under traffic than Gemini.
+let _groqClient = null;
+function getGroqClient() {
+  if (!_groqClient) {
+    _groqClient = new Groq({ apiKey: process.env.GROQ_API_KEY });
+  }
+  return _groqClient;
+}
+
+async function generateTitleFromUrl(url) {
+  try {
+    const groq = getGroqClient();
+    const completion = await groq.chat.completions.create({
+      model: "llama-3.1-8b-instant",
+      messages: [
+        {
+          role: "system",
+          content: "You are a content titling assistant. Generate extremely short, clear titles. Always respond with ONLY the title text — no quotes, no punctuation at the end, no explanation.",
+        },
+        {
+          role: "user",
+          content: `Generate a 3 to 5 word title for this saved URL: ${url}`,
+        },
+      ],
+      max_tokens: 20,
+      temperature: 0.3,
+    });
+
+    const title = completion.choices[0]?.message?.content?.trim();
+    return title || url;
+  } catch (err) {
+    console.warn("[AutoTitle] Groq title generation failed, using URL as fallback:", err.message);
+    return url; // safe fallback — never block the save
+  }
+}
 
 /**
  * Create Item Controller
@@ -19,8 +59,6 @@ export const createItem = async (req, res) => {
     const { title, url } = req.body;
 
     // url is the only truly required field — type is auto-detected from it.
-    // title can be provided by the client (e.g. extension), otherwise it will
-    // be populated by the extraction pipeline later in the background.
     if (!url) {
       return res.status(400).json({
         success: false,
@@ -28,14 +66,20 @@ export const createItem = async (req, res) => {
       });
     }
 
-    // Derive type automatically from the URL so the client never needs to send
-    // it. This keeps type data consistent and removes a source of client error.
+    // If the user didn't provide a title, generate one via LLM.
+    // This runs synchronously before saving so the item is immediately
+    // usable with a meaningful title — even before the pipeline runs.
+    const trimmedTitle = title?.trim();
+    const finalTitle = trimmedTitle
+      ? trimmedTitle
+      : await generateTitleFromUrl(url);
+
+    // Derive type automatically from the URL.
     const type = detectType(url);
 
-    // Create the item — user field is sourced from the verified JWT payload,
-    // not from client input, preventing ownership spoofing.
+    // Create the item — user field is sourced from the verified JWT payload.
     const item = await Item.create({
-      title: title?.trim() || "",
+      title: finalTitle,
       url,
       type,
       user: req.userId,
@@ -44,8 +88,6 @@ export const createItem = async (req, res) => {
     res.status(201).json({ success: true, data: item });
 
     // Enqueue the pipeline as a background job via BullMQ.
-    // The Worker in queue.js will pick this up and process it asynchronously.
-    // This completely decouples AI processing latency from the HTTP response.
     await pipelineQueue.add("process-item", { itemId: item._id.toString() });
 
     return;

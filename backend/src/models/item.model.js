@@ -7,10 +7,9 @@ import mongoose from "mongoose";
  */
 const itemSchema = new mongoose.Schema(
   {
-    /** Human-readable label for the saved item */
     title: {
       type: String,
-      required: [true, "Title is required"],
+      default: "",
       trim: true,
     },
 
@@ -74,7 +73,7 @@ const itemSchema = new mongoose.Schema(
       default: "pending",
     },
 
-    /** Owner of this item — sourced from Clerk JWT */
+    /** Owner of this item — sourced from Supabase JWT */
     user: {
       type: String,
       ref: "User",

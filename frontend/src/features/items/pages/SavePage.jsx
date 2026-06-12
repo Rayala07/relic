@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
 import { useItem } from "../hooks/useItem";
-import { Link2, Type, ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
+import { ArrowRight, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Skeleton } from "../../../components/ui/skeleton";
+import { RiEditBoxLine, RiLink } from "@remixicon/react";
 
 /**
  * Premium Form Block component for entering URL and Title.
@@ -39,9 +39,9 @@ const InputBlock = ({ url, onUrlChange, title, onTitleChange, urlError, onUrlErr
   return (
     <form onSubmit={handleSubmit} className="w-full flex flex-col gap-2">
       {/* URL Input */}
-      <div className={`relative flex items-center bg-background rounded-xl border ${urlError ? 'border-destructive/50 ring-1 ring-destructive/50' : 'border-border/50 focus-within:border-foreground/50 focus-within:ring-1 focus-within:ring-foreground/50'} transition-all duration-300 shadow-sm`}>
-        <div className={`pl-4 pr-3 ${urlError ? 'text-destructive' : 'text-muted-foreground'}`}>
-          <Link2 size={20} />
+      <div className={`relative flex items-center bg-background border ${urlError ? 'border-destructive/50 ring-1 ring-destructive/50' : 'border-border/50 focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/20'} transition-all duration-300`}>
+        <div className={`pl-4 pr-3 shrink-0 ${urlError ? 'text-destructive' : 'text-muted-foreground/50'}`}>
+          <RiLink size={18} />
         </div>
         <input
           type="text"
@@ -53,7 +53,7 @@ const InputBlock = ({ url, onUrlChange, title, onTitleChange, urlError, onUrlErr
           placeholder="https://..."
           autoFocus
           disabled={isLoading}
-          className="w-full bg-transparent border-none outline-none py-5 pr-4 text-[16px] text-foreground placeholder:text-muted-foreground/40 disabled:opacity-50"
+          className="w-full bg-transparent border-none outline-none py-5 pr-4 text-[15px] text-foreground placeholder:text-muted-foreground/30 disabled:opacity-50"
           style={{ caretColor: "var(--foreground)" }}
         />
       </div>
@@ -66,9 +66,9 @@ const InputBlock = ({ url, onUrlChange, title, onTitleChange, urlError, onUrlErr
       )}
 
       {/* Title Input (Optional) */}
-      <div className="relative flex items-center bg-background/40 rounded-xl border border-border/30 focus-within:border-foreground/30 focus-within:bg-background transition-all duration-300">
-        <div className="pl-4 pr-3 text-muted-foreground/40">
-          <Type size={18} />
+      <div className="relative flex items-center bg-background border border-border/50 focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/20 transition-all duration-300">
+        <div className="pl-4 pr-3 shrink-0 text-muted-foreground/50">
+          <RiEditBoxLine size={18} />
         </div>
         <input
           type="text"
@@ -76,7 +76,7 @@ const InputBlock = ({ url, onUrlChange, title, onTitleChange, urlError, onUrlErr
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Custom Title (Optional)"
           disabled={isLoading}
-          className="w-full bg-transparent border-none outline-none py-4 pr-4 text-[14px] text-foreground placeholder:text-muted-foreground/30 disabled:opacity-50"
+          className="w-full bg-transparent border-none outline-none py-5 pr-4 text-[15px] text-foreground placeholder:text-muted-foreground/30 disabled:opacity-50"
           style={{ caretColor: "var(--foreground)" }}
         />
       </div>
@@ -213,7 +213,7 @@ const SavePage = () => {
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
 
           {/* Central static form */}
-          <div className="bg-background/40 rounded-[16px] p-4 relative z-10">
+          <div className="bg-background/40 p-4 relative z-10">
             <InputBlock
               url={url}
               onUrlChange={setUrl}
