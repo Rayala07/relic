@@ -31,7 +31,7 @@ const API_BASE = CONFIG.API_BASE;
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message.type === "SAVE_ITEM") {
-    handleSaveItem(message.payload).then(sendResponse);
+    handleSaveItem(message.payload, message.token).then(sendResponse);
     // Returning true keeps the message channel open for the async response.
     return true;
   }
@@ -41,31 +41,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
  * Makes the authenticated POST request to create an item.
  * 
  * @param {{ title: string, url: string }} payload
+ * @param {string} token
  * @returns {Promise<{ success: boolean, message?: string, status?: number }>}
  */
-async function handleSaveItem(payload) {
+async function handleSaveItem(payload, token) {
   try {
-    // 1. Get the session token from the web app's cookies
-    let cookie = await new Promise((resolve) => {
-      chrome.cookies.get({ url: "https://relic-gamma.vercel.app", name: "sb-access-token" }, resolve);
-    });
-    
-    if (!cookie) {
-      // Fallback for local testing
-      cookie = await new Promise((resolve) => {
-        chrome.cookies.get({ url: "http://localhost:5173", name: "sb-access-token" }, resolve);
-      });
-    }
-
-    if (!cookie || !cookie.value) {
+    if (!token) {
       return {
         success: false,
         status: 401,
-        message: "Auth error: Please log in on the website first."
+        message: "Auth error: Missing token."
       };
     }
-
-    const token = cookie.value;
 
     const response = await fetch(`${API_BASE}/items/create`, {
       method: "POST",

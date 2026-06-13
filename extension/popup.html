@@ -10,15 +10,36 @@
     <link rel="stylesheet" href="popup.css" />
   </head>
   <body>
-    <div class="container">
+    <!-- Initial Loading State -->
+    <div id="global-loading" style="display: flex; justify-content: center; align-items: center; height: 200px; color: #a1a1aa; font-size: 12px; font-weight: 500; letter-spacing: 0.05em;">
+      LOADING...
+    </div>
+
+    <div id="app-content" class="container hidden">
       <header class="header">
         <div class="brand">
           <span class="badge">Relic AI Pipeline</span>
         </div>
-        <h1 class="title">Save a resource</h1>
+        <h1 class="title" id="main-title">Loading...</h1>
       </header>
 
-      <main class="form-card">
+      <!-- LOGIN VIEW -->
+      <main id="login-view" class="form-card hidden">
+        <div class="field">
+          <input id="email-input" type="email" class="input" placeholder="Email address" autocomplete="email" />
+        </div>
+        <div class="field">
+          <input id="password-input" type="password" class="input" placeholder="Password" />
+        </div>
+        <button id="login-btn" class="btn">LOGIN &rarr;</button>
+        <div id="login-status" class="status hidden"></div>
+        <div style="font-size: 11px; text-align: center; color: #a1a1aa; margin-top: 8px; line-height: 1.5;">
+          Don't have an account? <br/>Register on the main Relic website.
+        </div>
+      </main>
+
+      <!-- SAVE VIEW -->
+      <main id="save-view" class="form-card hidden">
         <div class="field">
           <input
             id="url-input"
@@ -29,7 +50,6 @@
             autofocus
           />
         </div>
-
         <div class="field">
           <input
             id="title-input"
@@ -39,18 +59,19 @@
             autocomplete="off"
           />
         </div>
-
         <button id="save-btn" class="btn" disabled>SAVE TO LIBRARY &rarr;</button>
-
         <div id="status" class="status hidden"></div>
       </main>
 
-      <footer class="footer">
-        <span>Not working?</span>
-        <a href="#" id="open-relic-btn" target="_blank" class="open-link">Log in to Relic</a>
+      <!-- FOOTER -->
+      <footer id="save-footer" class="footer hidden">
+        <a href="#" id="open-relic-btn" target="_blank" class="open-link">Open Library</a>
+        <span style="opacity: 0.5;">&bull;</span>
+        <button id="logout-btn" class="text-btn">Sign Out</button>
       </footer>
     </div>
 
+    <script src="supabase.js"></script>
     <script src="popup.js"></script>
   </body>
 </html>

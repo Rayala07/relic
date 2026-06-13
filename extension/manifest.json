@@ -12,13 +12,10 @@
   },
   "permissions": [
     "storage",
-    "tabs",
-    "cookies"
+    "tabs"
   ],
   "host_permissions": [
     "http://localhost:5000/*",
-    "https://relic-backend-server.onrender.com/*",
-    "https://relic-gamma.vercel.app/*",
-    "http://localhost:5173/*"
+    "https://relic-backend-server.onrender.com/*"
   ]
 }
