@@ -21,8 +21,8 @@ app.use(
         "http://localhost:5173",
       ];
 
-      // Allow requests with no origin (like mobile apps or curl)
-      if (!origin) return callback(null, true);
+      // Allow requests with no origin (like mobile apps or curl) or from Chrome extensions
+      if (!origin || origin.startsWith("chrome-extension://")) return callback(null, true);
 
       // Check if origin (ignoring trailing slash) is in allowed list
       const sanitizedOrigin = origin.replace(/\/$/, "");
