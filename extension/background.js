@@ -24,7 +24,7 @@
 // ── CONFIGURATION ────────────────────────────────────────────────────────────
 // In production, change to your live API server URL.
 const CONFIG = {
-  API_BASE: "https://relic-backend-q0f0.onrender.com/api"
+  API_BASE: "https://relic-backend-server.onrender.com/api"
 };
 
 const API_BASE = CONFIG.API_BASE;
@@ -39,20 +39,39 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 /**
  * Makes the authenticated POST request to create an item.
- * The browser attaches the backend's HttpOnly token cookie automatically
- * because localhost:5000 is listed in host_permissions and credentials
- * are included in the fetch call.
- *
+ * 
  * @param {{ title: string, url: string }} payload
  * @returns {Promise<{ success: boolean, message?: string, status?: number }>}
  */
 async function handleSaveItem(payload) {
   try {
+    // 1. Get the session token from the web app's cookies
+    let cookie = await new Promise((resolve) => {
+      chrome.cookies.get({ url: "https://relic-gamma.vercel.app", name: "sb-access-token" }, resolve);
+    });
+    
+    if (!cookie) {
+      // Fallback for local testing
+      cookie = await new Promise((resolve) => {
+        chrome.cookies.get({ url: "http://localhost:5173", name: "sb-access-token" }, resolve);
+      });
+    }
+
+    if (!cookie || !cookie.value) {
+      return {
+        success: false,
+        status: 401,
+        message: "Auth error: Please log in on the website first."
+      };
+    }
+
+    const token = cookie.value;
+
     const response = await fetch(`${API_BASE}/items/create`, {
       method: "POST",
-      credentials: "include", // sends HttpOnly cookie automatically
       headers: {
         "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
       },
       body: JSON.stringify({
         title: payload.title,

@@ -41,7 +41,7 @@ function showStatus(message, type) {
 
 function setLoading(isLoading) {
   saveBtn.disabled = isLoading;
-  saveBtn.textContent = isLoading ? "SAVING..." : "SAVE";
+  saveBtn.textContent = isLoading ? "SAVING..." : "SAVE TO LIBRARY →";
   if (isLoading) {
     showStatus("LOADING", "loading");
   } else {
@@ -53,11 +53,6 @@ function setLoading(isLoading) {
 saveBtn.addEventListener("click", async () => {
   const title = titleInput.value.trim();
   const url = urlInput.value.trim();
-
-  if (!title) {
-    showStatus("PLEASE ENTER A TITLE.", "error");
-    return;
-  }
 
   if (!url) {
     showStatus("PLEASE ENTER A URL.", "error");

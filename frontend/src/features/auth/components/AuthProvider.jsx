@@ -16,12 +16,26 @@ export const AuthProvider = ({ children }) => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setUser(session?.user || null);
       setIsLoaded(true);
+      
+      // Sync token to cookie for the Chrome extension
+      if (session?.access_token) {
+        document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=31536000; SameSite=Lax; Secure`;
+      } else {
+        document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      }
     });
 
     // 2. Listen for auth changes (login, logout, token refresh)
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user || null);
       setIsLoaded(true);
+      
+      // Sync token to cookie for the Chrome extension
+      if (session?.access_token) {
+        document.cookie = `sb-access-token=${session.access_token}; path=/; max-age=31536000; SameSite=Lax; Secure`;
+      } else {
+        document.cookie = `sb-access-token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
+      }
     });
 
     return () => subscription.unsubscribe();
