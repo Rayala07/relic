@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useUser, useAuth } from "../../features/auth/components/AuthProvider";
 import { Search } from "lucide-react";
 import { ModeToggle } from "../../components/ModeToggle";
@@ -9,6 +9,7 @@ const Navbar = () => {
   const { pathname } = useLocation();
   const { user, isLoaded } = useUser();
   const { signOut } = useAuth();
+  const navigate = useNavigate();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
@@ -45,6 +46,43 @@ const Navbar = () => {
     return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
+  // Global keyboard shortcuts for navigation
+  useEffect(() => {
+    if (!user) return; // only active when logged in
+
+    const handleShortcut = (e) => {
+      const isMod = e.metaKey || e.ctrlKey; // CMD on Mac, CTRL on Windows
+      if (!isMod) return;
+
+      const tag = document.activeElement?.tagName.toLowerCase();
+      const isTyping = tag === "input" || tag === "textarea" || document.activeElement?.isContentEditable;
+
+      // CMD/CTRL + K → Search
+      // Block browser's address bar/search trigger first, then navigate
+      if (e.key === "k") {
+        e.preventDefault(); // Must be called before any async work
+        e.stopPropagation();
+        navigate("/search");
+        return;
+      }
+
+      // CMD/CTRL + S → Save
+      // Block browser's "Save Page As" dialog, then navigate
+      // Exception: allow normal behavior inside text inputs so forms work
+      if (e.key === "s") {
+        if (!isTyping) {
+          e.preventDefault(); // Must be called before any async work
+          e.stopPropagation();
+          navigate("/save");
+        }
+        return;
+      }
+    };
+
+    document.addEventListener("keydown", handleShortcut);
+    return () => document.removeEventListener("keydown", handleShortcut);
+  }, [user, navigate]);
+
   // If on a public auth page, entirely hide the layout navigation wrapper
   if (pathname === "/login" || pathname === "/register") {
     return null;
@@ -58,7 +96,7 @@ const Navbar = () => {
     { name: "HOME", path: "/" },
     { name: "LIBRARY", path: "/library" },
     { name: "COLLECTIONS", path: "/collections" },
-    { name: "SAVE", path: "/save" },
+    { name: "SAVE", path: "/save", hint: "⌘S" },
   ];
 
   const triggerLogout = async () => {

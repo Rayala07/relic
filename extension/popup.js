@@ -7,7 +7,7 @@ const SUPABASE_URL = "https://pntwssletdrvlkcwoxqp.supabase.co";
 const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBudHdzc2xldGRydmxrY3dveHFwIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODExOTE2MTEsImV4cCI6MjA5Njc2NzYxMX0.EniBXFzxcrp39hrHIGZulazrwOM3WiPgTMiZiNalbtQ";
 
 // Initialize Supabase Client natively in the extension
-const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+let supabaseClient;
 
 // DOM Elements
 const globalLoading = document.getElementById("global-loading");
@@ -40,15 +40,34 @@ openRelicBtn.href = CONFIG.FRONTEND_URL;
 
 // ── INIT ─────────────────────────────────────────────────────────────────────
 async function init() {
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  globalLoading.classList.add("hidden");
-  appContent.classList.remove("hidden");
+  try {
+    globalLoading.textContent = "DEBUG: Checking Supabase...";
+    if (!window.supabase) throw new Error("Supabase JS failed to load.");
+    
+    globalLoading.textContent = "DEBUG: Creating client...";
+    supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    
+    globalLoading.textContent = "DEBUG: Fetching session...";
+    
+    // Add a timeout to getSession just in case it hangs infinitely
+    const sessionPromise = supabaseClient.auth.getSession();
+    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error("Timeout waiting for Supabase")), 5000));
+    
+    const { data: { session }, error } = await Promise.race([sessionPromise, timeoutPromise]);
+    
+    if (error) throw error;
+    
+    globalLoading.classList.add("hidden");
+    appContent.classList.remove("hidden");
 
-  if (session) {
-    showSaveView();
-  } else {
-    showLoginView();
+    if (session) {
+      showSaveView();
+    } else {
+      showLoginView();
+    }
+  } catch (err) {
+    globalLoading.textContent = "ERROR: " + err.message;
+    globalLoading.style.color = "#ef4444";
   }
 }
 
@@ -89,7 +108,7 @@ loginBtn.addEventListener("click", async () => {
   loginBtn.textContent = "LOGGING IN...";
   loginStatus.className = "status hidden";
 
-  const { data, error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabaseClient.auth.signInWithPassword({
     email,
     password,
   });
@@ -106,7 +125,7 @@ loginBtn.addEventListener("click", async () => {
 });
 
 logoutBtn.addEventListener("click", async () => {
-  await supabase.auth.signOut();
+  await supabaseClient.auth.signOut();
   showLoginView();
 });
 
@@ -135,12 +154,12 @@ saveBtn.addEventListener("click", async () => {
   setLoading(true);
 
   // Get fresh token from extension's internal Supabase state
-  const { data: { session }, error } = await supabase.auth.getSession();
+  const { data: { session }, error } = await supabaseClient.auth.getSession();
   if (error || !session) {
     setLoading(false);
     statusEl.textContent = "SESSION EXPIRED. PLEASE RELOGIN.";
     statusEl.className = "status error";
-    await supabase.auth.signOut();
+    await supabaseClient.auth.signOut();
     showLoginView();
     return;
   }
