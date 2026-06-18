@@ -192,14 +192,14 @@ const HomePage = () => {
           </p>
 
           <div className="flex flex-col items-center gap-4 closing-btn" style={{ opacity: 0 }}>
-            <a 
-              href="#"
-              onClick={(e) => { e.preventDefault(); alert("Extension download link goes here!"); }}
-              className="flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5"
-              style={{ fontSize: "12px", letterSpacing: "0.1em", padding: "16px 32px", fontWeight: 600, borderRadius: "8px", textDecoration: "none" }}
+            <button 
+              type="button"
+              onClick={() => alert("Extension download link goes here!")}
+              className="flex items-center justify-center bg-foreground text-background hover:bg-foreground/90 transition-all duration-200 uppercase shadow-lg hover:shadow-xl hover:-translate-y-0.5 cursor-pointer border-0"
+              style={{ fontSize: "12px", letterSpacing: "0.1em", padding: "16px 32px", fontWeight: 600, borderRadius: "8px" }}
             >
               GET CHROME EXTENSION
-            </a>
+            </button>
             <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               1 click install • Native integration
             </p>
