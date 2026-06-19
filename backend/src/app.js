@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import mongoose from "mongoose";
 import itemRoutes from "./routes/item.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
@@ -60,8 +61,13 @@ app.get("/", (req, res) => {
   res.status(200).send("Server is running");
 });
 
-app.get("/health", (req, res) => {
-  res.status(200).send("Health Check Passed");
+app.get("/health", async (req, res) => {
+  const dbState = mongoose.connection.readyState;
+  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
+  if (dbState === 1) {
+    return res.status(200).json({ status: "ok", db: "connected" });
+  }
+  return res.status(503).json({ status: "degraded", db: "disconnected" });
 });
 
 app.use("/api/items", aiLimiter, itemRoutes);
