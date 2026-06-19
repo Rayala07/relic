@@ -58,8 +58,7 @@ const RegisterForm = () => {
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
-        // Supabase will automatically redirect back to your app after login
-        redirectTo: window.location.origin
+        redirectTo: window.location.origin,
       }
     });
 

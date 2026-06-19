@@ -63,7 +63,6 @@ app.get("/", (req, res) => {
 
 app.get("/health", async (req, res) => {
   const dbState = mongoose.connection.readyState;
-  // 0 = disconnected, 1 = connected, 2 = connecting, 3 = disconnecting
   if (dbState === 1) {
     return res.status(200).json({ status: "ok", db: "connected" });
   }
