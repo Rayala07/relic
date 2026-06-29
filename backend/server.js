@@ -29,11 +29,15 @@ if (missing.length > 0) {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, async () => {
+// Connect to DB FIRST — server only starts listening once the database is ready.
+// This prevents requests from arriving before Mongoose is connected,
+// which was causing 40-50 second loading delays due to queued operations.
+await connectToDB();
+startResurfacerCron();
+
+app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
   console.log(`[Queue] Pipeline worker is active and listening for jobs`);
-
-  await connectToDB();
-  startResurfacerCron();
 });
+
 
