@@ -10,6 +10,8 @@ import HomePage from "./pages/HomePage";
 import CollectionListPage, { CollectionListPageSkeleton } from "../features/collections/pages/CollectionListPage";
 import CollectionDetailPage, { CollectionDetailPageSkeleton } from "../features/collections/pages/CollectionDetailPage";
 
+import BackendWakingNotice from "../components/ui/BackendWakingNotice";
+
 import withAuth from "../features/auth/components/withAuth";
 import withGuest from "../features/auth/components/withGuest";
 
@@ -23,6 +25,8 @@ const LayoutWrapper = () => {
       <div className={isAuthPage ? "" : "pt-[72px]"}>
         <Outlet />
       </div>
+      {/* Cross-cutting: a cold start can hit any route, so it lives in the shell */}
+      <BackendWakingNotice />
     </div>
   );
 };

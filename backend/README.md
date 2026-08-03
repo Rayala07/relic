@@ -52,9 +52,19 @@ create table public.keepalive (
 insert into public.keepalive (id) values (1);
 
 alter table public.keepalive enable row level security;
+
+-- Both layers are required. The GRANT decides whether anon may touch the table
+-- at all; the policy decides which rows it sees. Projects created before the
+-- default public-schema grants were removed may already have the GRANT — running
+-- it again is harmless.
+grant select on table public.keepalive to anon;
+
 create policy "anon can read keepalive"
   on public.keepalive for select to anon using (true);
 ```
+
+If `/health` reports `permission denied for table keepalive`, the `GRANT` is missing.
+If it reports `table public.keepalive not found`, the table was never created.
 
 ### Watch the Render hour budget
 

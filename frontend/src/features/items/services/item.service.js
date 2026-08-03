@@ -11,6 +11,7 @@ const API_URL = import.meta.env.VITE_API_URL || "http://localhost:5001/api";
 const REQUEST_TIMEOUT_MS = 20000;
 const MAX_RETRIES = 3;
 const RETRY_BASE_DELAY_MS = 1000;
+const COLD_START_HINT_MS = 2500;
 
 const IDEMPOTENT_METHODS = ["get", "head", "options"];
 
@@ -57,7 +58,19 @@ export const warmBackend = () => {
   // auth token, and must not trip the retry logic. The long timeout matches the
   // worst-case spin-up; failure is ignored because this is best-effort only.
   const healthUrl = `${API_URL.replace(/\/api\/?$/, "")}/health`;
-  axios.get(healthUrl, { timeout: 60000 }).catch(() => {});
+
+  // A warm server answers in well under a second. If it hasn't by now it is
+  // spinning up, so say so straight away — otherwise the visitor only finds out
+  // once they navigate somewhere and sit through a full request timeout.
+  const coldStartHint = setTimeout(() => setWaking(true), COLD_START_HINT_MS);
+
+  axios
+    .get(healthUrl, { timeout: 60000 })
+    .catch(() => {})
+    .finally(() => {
+      clearTimeout(coldStartHint);
+      setWaking(false);
+    });
 };
 
 // ─── Retry with exponential backoff ──────────────────────────────────────────
