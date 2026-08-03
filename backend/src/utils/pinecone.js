@@ -154,3 +154,14 @@ export async function findRelatedItems(mongoId, topK = 5, threshold = 0.75) {
     .sort((a, b) => b.score - a.score)
     .slice(0, topK);
 }
+
+/**
+ * Cheapest possible round-trip to the index — used only by the keep-alive.
+ * Pinecone archives Starter-plan indexes that go unqueried, which would
+ * silently break search until the index is rebuilt from its collection.
+ *
+ * @returns {Promise<object>} index stats (vector count, dimension, namespaces)
+ */
+export async function pingIndex() {
+  return index.describeIndexStats();
+}

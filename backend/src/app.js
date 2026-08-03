@@ -1,13 +1,13 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
-import mongoose from "mongoose";
 import itemRoutes from "./routes/item.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
 import resurfaceRouter from "./routes/resurface.routes.js";
 import statsRoutes from "./routes/stats.routes.js";
 import rateLimit from "express-rate-limit";
+import { pingMongo, pingDormantServices, getKeepaliveStatus } from "./utils/keepalive.js";
 import "dotenv/config";
 
 const app = express();
@@ -62,11 +62,26 @@ app.get("/", (req, res) => {
 });
 
 app.get("/health", async (req, res) => {
-  const dbState = mongoose.connection.readyState;
-  if (dbState === 1) {
-    return res.status(200).json({ status: "ok", db: "connected" });
+  // Doubles as the free-tier keep-alive target. The Mongo ping below is a real
+  // query, so it both reports honest health and defers Atlas's auto-pause; the
+  // Supabase and Pinecone probes ride along without blocking the response.
+  pingDormantServices();
+
+  try {
+    await pingMongo();
+    return res.status(200).json({
+      status: "ok",
+      db: "connected",
+      keepalive: getKeepaliveStatus(),
+    });
+  } catch (err) {
+    console.error("[HEALTH] MongoDB ping failed —", err.message);
+    return res.status(503).json({
+      status: "degraded",
+      db: "disconnected",
+      keepalive: getKeepaliveStatus(),
+    });
   }
-  return res.status(503).json({ status: "degraded", db: "disconnected" });
 });
 
 app.use("/api/items", aiLimiter, itemRoutes);
