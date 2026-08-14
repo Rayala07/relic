@@ -13,7 +13,7 @@ import "dotenv/config";
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json());
 app.use(
   cors({

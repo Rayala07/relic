@@ -36,8 +36,10 @@ async function extractionPipeline(itemId) {
   try {
     const { content } = await extract(item.url);
 
-    // User-provided title takes priority — only fall back to extracted title if user gave none
-    const finalTitle = item.title || content.title;
+    // Prefer the real extracted title (YouTube oEmbed, article heading, PDF metadata).
+    // item.title is an auto-generated Groq placeholder — only use it as a fallback
+    // when the extractor genuinely finds no title.
+    const finalTitle = content.title || item.title;
 
     // ── Stage 3: Translate to English ──────────────────────────────────────
     // No-op if content is already English — franc detects and skips automatically
