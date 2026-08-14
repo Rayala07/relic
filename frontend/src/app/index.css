@@ -262,66 +262,7 @@ body {
   mask-image: linear-gradient(to right, transparent, #000 12%, #000 88%, transparent);
 }
 
-/* ── Footer wordmark ────────────────────────────────────────────
-   Both layers share one class so the tinted overlay registers exactly on top
-   of the faint base. text-align-last justifies the single line, which spreads
-   R…C flush to both container edges at any width — and keeps it a single text
-   node, so background-clip:text can carry one continuous gradient across it. */
-.home .wordmark-type {
-  display: block;
-  width: 100%;
-  font-weight: 700;
-  font-size: clamp(52px, 15.5vw, 232px);
-  line-height: 0.82;
-  text-align: justify;
-  text-align-last: justify;
-  /* Justify flushes the glyphs' advance boxes, not their ink. Bold R has a far
-     larger left side bearing than round C has on the right, so the word reads
-     as pushed right; this pulls the ink back to optical centre. In em, so it
-     tracks the clamped font-size. */
-  transform: translateX(var(--wordmark-nudge));
-}
 
-/* Light gold — the one flashy note on the page. Alpha stays high on purpose:
-   a mid-alpha yellow over black composites down into olive-brown, which is
-   what made the first pass look dull. Light mode runs a deeper base tone,
-   since a pale gold on white disappears. */
-.home {
-  --wordmark-lit: rgba(214, 160, 30, 0.72);
-  --wordmark-nudge: -0.022em;
-}
-
-.dark .home {
-  --wordmark-lit: rgba(255, 222, 130, 0.9);
-}
-
-/* The reveal is a soft-edged mask sweep, not a clip. The mask is three times
-   the element's width with a feathered ramp a full element-width across, so at
-   no point is there a hard boundary — the colour just arrives, left first. */
-.home .wordmark-fill {
-  color: var(--wordmark-lit);
-  opacity: 0;
-  -webkit-mask-image: linear-gradient(90deg, transparent 0 34%, #000 66% 100%);
-  mask-image: linear-gradient(90deg, transparent 0 34%, #000 66% 100%);
-  -webkit-mask-size: 300% 100%;
-  mask-size: 300% 100%;
-  -webkit-mask-repeat: no-repeat;
-  mask-repeat: no-repeat;
-  -webkit-mask-position: 0% 0%;
-  mask-position: 0% 0%;
-}
-
-/* Browser-interpolated, so the sweep stays smooth where a JS-driven string
-   interpolation on mask-position would step. */
-.home .wordmark-fill.is-lit {
-  opacity: 1;
-  -webkit-mask-position: 100% 0%;
-  mask-position: 100% 0%;
-  transition:
-    opacity 1.4s cubic-bezier(0.33, 1, 0.68, 1),
-    -webkit-mask-position 2.4s cubic-bezier(0.33, 1, 0.68, 1),
-    mask-position 2.4s cubic-bezier(0.33, 1, 0.68, 1);
-}
 
 @keyframes caret-blink {
   0%, 45% { opacity: 1; }

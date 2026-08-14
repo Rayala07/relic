@@ -6,30 +6,15 @@ import { useUser } from "../../../features/auth/components/AuthProvider";
 const REPO_URL = "https://github.com/Rayala07/relic";
 const EMAIL = "developer.rayala@gmail.com";
 
-// Spaces are load-bearing: text-align-last: justify expands them to push the
-// R and the C flush against the container edges.
-const WORDMARK = "R E L I C";
-
-/**
- * Faint monochrome base with an amber copy stacked on top. The colour arrives
- * through a feathered mask sweep the first time the footer enters view — the
- * animation itself is CSS (see .wordmark-fill), this only decides when.
- */
 const Wordmark = () => {
-  const ref = useRef(null);
-  const reduced = useReducedMotion();
-  const inView = useInView(ref, { once: true, margin: "-64px" });
-
   return (
-    <div ref={ref} className="relative w-full mt-6 select-none pointer-events-none" aria-hidden>
-      <span className="wordmark-type font-heading text-foreground/[0.06]">{WORDMARK}</span>
-
-      <span
-        className={`wordmark-type wordmark-fill font-heading absolute inset-0 ${
-          inView || reduced ? "is-lit" : ""
-        }`}
-      >
-        {WORDMARK}
+    <div className="relative w-full mt-16 md:mt-24 mb-4 select-none pointer-events-none flex justify-center items-center overflow-hidden">
+      {/* Subtle background glow for a premium feel */}
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[70%] h-[60%] bg-foreground/5 dark:bg-foreground/10 blur-[100px] rounded-[100%]" />
+      
+      {/* Crisp, massive brand mark */}
+      <span className="relative z-10 font-heading font-extrabold text-[16vw] leading-[0.75] tracking-[-0.02em] text-transparent bg-clip-text bg-gradient-to-b from-foreground via-foreground/90 to-muted-foreground/20">
+        RELIC
       </span>
     </div>
   );
@@ -96,9 +81,10 @@ const SiteFooter = () => {
       <div className="w-full max-w-[1200px] mx-auto">
 
         {/* ── Brand + navigation ─────────────────────────────────── */}
-        <div className="grid grid-cols-2 md:grid-cols-[1.6fr_1fr_1fr_1fr] gap-x-8 gap-y-14 pt-20 pb-14">
+        <div className="flex flex-col md:flex-row justify-between gap-y-14 gap-x-8 pt-20 pb-14">
 
-          <div className="col-span-2 md:col-span-1 flex flex-col items-start">
+          {/* Left: Brand & CTA */}
+          <div className="w-full md:w-[40%] flex flex-col items-start">
             <div className="flex items-center gap-3 mb-6">
               <img src="/Relic_logo.png" alt="" className="w-5 h-5 object-contain opacity-80" />
               <span className="text-foreground font-heading font-bold tracking-[0.18em] text-sm">
@@ -123,38 +109,41 @@ const SiteFooter = () => {
             </div>
           </div>
 
-          <div className="flex flex-col gap-4">
-            <ColumnHeading>Product</ColumnHeading>
-            <a href="#how" onClick={scrollToId("how")} className={linkClass}>
-              How it works
-            </a>
-            <a href="#features" onClick={scrollToId("features")} className={linkClass}>
-              Features
-            </a>
-            <a href="#chrome-extension" onClick={scrollToId("chrome-extension")} className={linkClass}>
-              Extension
-            </a>
-          </div>
-
-          <div className="flex flex-col gap-4">
-            <ColumnHeading>Account</ColumnHeading>
-            <div className={`flex flex-col gap-4 transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
-              {accountLinks.map((link) => (
-                <Link key={link.label} to={link.to} className={linkClass}>
-                  {link.label}
-                </Link>
-              ))}
+          {/* Right: Navigation Links */}
+          <div className="w-full md:w-auto grid grid-cols-2 md:grid-cols-3 gap-x-12 lg:gap-x-24 gap-y-10">
+            <div className="flex flex-col gap-4">
+              <ColumnHeading>Product</ColumnHeading>
+              <a href="#how" onClick={scrollToId("how")} className={linkClass}>
+                How it works
+              </a>
+              <a href="#features" onClick={scrollToId("features")} className={linkClass}>
+                Features
+              </a>
+              <a href="#chrome-extension" onClick={scrollToId("chrome-extension")} className={linkClass}>
+                Extension
+              </a>
             </div>
-          </div>
 
-          <div className="flex flex-col gap-4">
-            <ColumnHeading>Elsewhere</ColumnHeading>
-            <ExternalLink href={REPO_URL}>GitHub</ExternalLink>
-            <ExternalLink href="https://x.com/ReyZox_07">X</ExternalLink>
-            <ExternalLink href="https://www.linkedin.com/in/rayala07/">LinkedIn</ExternalLink>
-            <a href={`mailto:${EMAIL}`} className={linkClass}>
-              Email
-            </a>
+            <div className="flex flex-col gap-4">
+              <ColumnHeading>Account</ColumnHeading>
+              <div className={`flex flex-col gap-4 transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
+                {accountLinks.map((link) => (
+                  <Link key={link.label} to={link.to} className={linkClass}>
+                    {link.label}
+                  </Link>
+                ))}
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-4">
+              <ColumnHeading>Elsewhere</ColumnHeading>
+              <ExternalLink href={REPO_URL}>GitHub</ExternalLink>
+              <ExternalLink href="https://x.com/ReyZox_07">X</ExternalLink>
+              <ExternalLink href="https://www.linkedin.com/in/rayala07/">LinkedIn</ExternalLink>
+              <a href={`mailto:${EMAIL}`} className={linkClass}>
+                Email
+              </a>
+            </div>
           </div>
         </div>
 

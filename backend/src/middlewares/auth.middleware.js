@@ -1,10 +1,37 @@
-import axios from "axios";
+import { createPublicKey } from "crypto";
+import jwt from "jsonwebtoken";
 import User from "../models/user.model.js";
 
 /**
- * Verifies the Supabase JWT token and attaches the user ID to the request.
- * Uses the Supabase REST API to guarantee the token hasn't been revoked.
+ * Fix #1 — Verifies the Supabase JWT locally using the JWKS public key.
+ *
+ * Supabase now signs JWTs with ECC (P-256) → ES256 algorithm.
+ * We fetch the public key from Supabase's JWKS endpoint ONCE on first use,
+ * cache it in memory, and verify all subsequent tokens in-process (<1ms).
+ *
+ * BEFORE: Every request → live HTTP call to Supabase /auth/v1/user → ~200ms
+ * AFTER:  First request → fetch JWKS (one-time) → cache public key
+ *         Every subsequent request → jwt.verify() in-process → <1ms
  */
+
+let _cachedPublicKey = null;
+
+async function getPublicKey() {
+  if (_cachedPublicKey) return _cachedPublicKey;
+
+  // Supabase exposes its JWKS at this well-known endpoint
+  const res = await fetch(`${process.env.SUPABASE_URL}/auth/v1/.well-known/jwks.json`);
+  if (!res.ok) throw new Error(`JWKS fetch failed: ${res.status}`);
+
+  const { keys } = await res.json();
+  if (!keys?.length) throw new Error("JWKS response contained no keys");
+
+  // Convert the JWK to a Node.js KeyObject — works with jsonwebtoken's verify
+  _cachedPublicKey = createPublicKey({ format: "jwk", key: keys[0] });
+  console.log("[AUTH] JWKS public key loaded and cached");
+  return _cachedPublicKey;
+}
+
 export const verifyToken = [
   async (req, res, next) => {
     try {
@@ -15,25 +42,18 @@ export const verifyToken = [
 
       const token = authHeader.split(" ")[1];
 
-      // Call Supabase API to get the user and verify the token is active
-      const response = await axios.get(`${process.env.SUPABASE_URL}/auth/v1/user`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          apikey: process.env.SUPABASE_ANON_KEY,
-        },
-      });
+      // Verify signature and expiry locally using the cached JWKS public key
+      const publicKey = await getPublicKey();
+      const decoded = jwt.verify(token, publicKey, { algorithms: ["ES256"] });
 
-      const supabaseUser = response.data;
-      const supabaseUserId = supabaseUser.id;
-      
-      // Attach the ID for downstream controllers
+      const supabaseUserId = decoded.sub;
       req.userId = supabaseUserId;
 
-      // Fix #5 — JIT Provisioning: single atomic upsert instead of findById + conditional create.
+      // Fix #5 — JIT Provisioning: single atomic upsert.
       // $setOnInsert only writes on first-time creation; existing users pay zero write cost.
       // Catch E11000: if the email unique index fires, the user already exists — safe to continue.
-      const email = supabaseUser.email || "";
-      const name = supabaseUser.user_metadata?.first_name || email.split("@")[0] || "Unknown User";
+      const email = decoded.email || "";
+      const name = decoded.user_metadata?.first_name || email.split("@")[0] || "Unknown User";
       try {
         await User.findByIdAndUpdate(
           supabaseUserId,
@@ -41,12 +61,12 @@ export const verifyToken = [
           { upsert: true }
         );
       } catch (err) {
-        if (err.code !== 11000) throw err; // only swallow duplicate key — re-throw everything else
+        if (err.code !== 11000) throw err;
       }
 
       next();
     } catch (error) {
-      console.error("[AUTH] JWT Verification Error:", error.response?.data || error.message);
+      console.error("[AUTH] JWT Verification Error:", error.message);
       return res.status(401).json({ success: false, message: "Invalid or expired token" });
     }
   }

@@ -8,6 +8,15 @@ import { generateSummary } from "./summariser.js";
 import { generateTags } from "./tagger.js";
 import { autoOrganizeItem } from "./autoOrganize.js";
 
+// Fix #4 — Wraps any promise with a hard timeout so a hanging AI/network call
+// never permanently blocks a BullMQ worker slot.
+function withTimeout(promise, ms, label) {
+  const timer = new Promise((_, reject) =>
+    setTimeout(() => reject(new Error(`[Pipeline] ${label} timed out after ${ms}ms`)), ms)
+  );
+  return Promise.race([promise, timer]);
+}
+
 /**
  * Runs the full content processing pipeline for a saved item.
  * Triggered as a fire-and-forget job after the HTTP response is sent.
@@ -34,7 +43,7 @@ async function extractionPipeline(itemId) {
   let translatedContent;
 
   try {
-    const { content } = await extract(item.url);
+    const { content } = await withTimeout(extract(item.url), 25000, "extract");
 
     // Prefer the real extracted title (YouTube oEmbed, article heading, PDF metadata).
     // item.title is an auto-generated Groq placeholder — only use it as a fallback
@@ -43,7 +52,7 @@ async function extractionPipeline(itemId) {
 
     // ── Stage 3: Translate to English ──────────────────────────────────────
     // No-op if content is already English — franc detects and skips automatically
-    translatedContent = await translateToEnglish(content);
+    translatedContent = await withTimeout(translateToEnglish(content), 30000, "translate");
 
     await Item.findByIdAndUpdate(itemId, {
       title: finalTitle,
@@ -94,11 +103,12 @@ async function extractionPipeline(itemId) {
     // Fetch the user's existing tags to enforce taxonomy reuse
     const userTags = await Item.distinct("ai.tags", { user: item.user });
 
-    // Run embed, summarise, and tag in parallel — no dependency between them
+    // Run embed, summarise, and tag in parallel — no dependency between them.
+    // Each has a hard timeout so a hanging AI call never freezes the worker slot.
     const [vectors, summary, tags] = await Promise.all([
-      embedChunks(chunks),
-      generateSummary(translatedContent.body),
-      generateTags(translatedContent.body, userTags),
+      withTimeout(embedChunks(chunks),                        45000, "embed"),
+      withTimeout(generateSummary(translatedContent.body),    20000, "summarise"),
+      withTimeout(generateTags(translatedContent.body, userTags), 15000, "tag"),
     ]);
 
     // Guard: Mistral should return one vector per chunk — if not, something went
@@ -112,7 +122,7 @@ async function extractionPipeline(itemId) {
     }
 
     // Store chunk vectors in Pinecone — scoped to user's namespace
-    await upsertChunks(itemId, item.user, chunks, vectors);
+    await withTimeout(upsertChunks(itemId, item.user, chunks, vectors), 30000, "upsert");
 
     await Item.findByIdAndUpdate(itemId, {
       "ai.embedding.model": "mistral-embed",

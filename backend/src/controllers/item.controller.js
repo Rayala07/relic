@@ -3,6 +3,7 @@ import detectType from "../utils/detectType.js";
 import { deleteChunks, findRelatedItems } from "../utils/pinecone.js";
 import { pipelineQueue } from "../services/queue.js";
 import Groq from "groq-sdk";
+import { z } from "zod";
 
 // ── Auto-Title Generator ──────────────────────────────────────────────────────
 // Called when the user saves a link without providing a title.
@@ -54,17 +55,28 @@ async function generateTitleFromUrl(url) {
  * @param {import('express').Request} req
  * @param {import('express').Response} res
  */
+// Fix #2 — Zod schema for item creation.
+// Rejects javascript:/data: URI schemes, oversized input, and malformed URLs
+// before any DB write or LLM call is attempted.
+const createItemSchema = z.object({
+  url: z
+    .string({ required_error: "url is required" })
+    .max(2048, "url must be 2048 characters or fewer")
+    .refine((val) => val.startsWith("http://") || val.startsWith("https://"), { message: "url must start with http:// or https://" }),
+  title: z.string().max(200, "title must be 200 characters or fewer").optional(),
+});
+
 export const createItem = async (req, res) => {
   try {
-    const { title, url } = req.body;
-
-    // url is the only truly required field — type is auto-detected from it.
-    if (!url) {
+    // Validate and sanitise input before touching the DB or calling any LLM
+    const parsed = createItemSchema.safeParse(req.body);
+    if (!parsed.success) {
       return res.status(400).json({
         success: false,
-        message: "url is required",
+        message: parsed.error.errors[0].message,
       });
     }
+    const { url, title } = parsed.data;
 
     // Fix #16 — Duplicate URL guard: return 409 if this user already saved this URL.
     const existing = await Item.findOne({ user: req.userId, url }, { _id: 1 }).lean();
