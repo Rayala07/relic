@@ -1,7 +1,6 @@
 import { createBrowserRouter, Outlet, useLocation } from "react-router-dom";
 import Register from "../features/auth/pages/Register";
 import Login from "../features/auth/pages/Login";
-import SavePage, { SavePageSkeleton } from "../features/items/pages/SavePage";
 import LibraryPage, { LibraryPageSkeleton } from "../features/items/pages/LibraryPage";
 import ItemDetailPage from "../features/items/pages/ItemDetailPage";
 import Navbar from "./components/Navbar";
@@ -11,6 +10,7 @@ import CollectionListPage, { CollectionListPageSkeleton } from "../features/coll
 import CollectionDetailPage, { CollectionDetailPageSkeleton } from "../features/collections/pages/CollectionDetailPage";
 
 import BackendWakingNotice from "../components/ui/BackendWakingNotice";
+import { SaveModal } from "../features/items/components/SaveModal";
 
 import withAuth from "../features/auth/components/withAuth";
 import withGuest from "../features/auth/components/withGuest";
@@ -25,14 +25,14 @@ const LayoutWrapper = () => {
       <div className={isAuthPage ? "" : "pt-[72px]"}>
         <Outlet />
       </div>
-      {/* Cross-cutting: a cold start can hit any route, so it lives in the shell */}
+      {/* Global Overlays */}
       <BackendWakingNotice />
+      <SaveModal />
     </div>
   );
 };
 
 // Wrap pages properly
-const ProtectedSave = withAuth(SavePage, SavePageSkeleton);
 const ProtectedLibrary = withAuth(LibraryPage, LibraryPageSkeleton);
 const ProtectedItem = withAuth(ItemDetailPage);
 const ProtectedSearch = withAuth(SearchPage);
@@ -56,10 +56,6 @@ const routes = createBrowserRouter([
             {
                 path: "/login",
                 element: <GuestLogin />
-            },
-            {
-                path: "/save",
-                element: <ProtectedSave />
             },
             {
                 path: "/library",

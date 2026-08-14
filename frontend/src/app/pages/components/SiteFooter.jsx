@@ -1,5 +1,7 @@
 import React, { useRef } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { openSaveModal } from "../../../app/uiSlice";
 import { useInView, useReducedMotion } from "motion/react";
 import { useUser } from "../../../features/auth/components/AuthProvider";
 
@@ -52,6 +54,7 @@ const ExternalLink = ({ href, children }) => (
 const SiteFooter = () => {
   const { user, isLoaded } = useUser();
   const reduced = useReducedMotion();
+  const dispatch = useDispatch();
 
   const scrollToId = (id) => (e) => {
     e.preventDefault();
@@ -68,7 +71,7 @@ const SiteFooter = () => {
     ? [
         { label: "Library", to: "/library" },
         { label: "Collections", to: "/collections" },
-        { label: "Save an item", to: "/save" },
+        { label: "Save an item", action: "save" },
         { label: "Search", to: "/search" },
       ]
     : [
@@ -127,11 +130,24 @@ const SiteFooter = () => {
             <div className="flex flex-col gap-4">
               <ColumnHeading>Account</ColumnHeading>
               <div className={`flex flex-col gap-4 transition-opacity duration-300 ${isLoaded ? "opacity-100" : "opacity-0"}`}>
-                {accountLinks.map((link) => (
-                  <Link key={link.label} to={link.to} className={linkClass}>
-                    {link.label}
-                  </Link>
-                ))}
+                {accountLinks.map((link) => {
+                  if (link.action === "save") {
+                    return (
+                      <button
+                        key={link.label}
+                        onClick={() => dispatch(openSaveModal())}
+                        className={`${linkClass} bg-transparent border-none cursor-pointer text-left w-fit p-0`}
+                      >
+                        {link.label}
+                      </button>
+                    );
+                  }
+                  return (
+                    <Link key={link.label} to={link.to} className={linkClass}>
+                      {link.label}
+                    </Link>
+                  );
+                })}
               </div>
             </div>
 

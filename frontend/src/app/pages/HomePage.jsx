@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { Link } from "react-router-dom";
 import { motion, useReducedMotion } from "motion/react";
+import Lenis from "lenis";
 import { useUser } from "../../features/auth/components/AuthProvider";
 import HeroSearchDemo from "./components/HeroSearchDemo";
 import SourceMarquee from "./components/SourceMarquee";
@@ -56,6 +57,27 @@ const SectionHeader = ({ index, label, title, lead }) => (
 const HomePage = () => {
   const { user, isLoaded } = useUser();
   const reduced = useReducedMotion();
+
+  // Initialise Lenis for subtle smooth scrolling on the home page only
+  useEffect(() => {
+    if (reduced) return; // Respect OS reduced motion preference
+
+    const lenis = new Lenis({
+      lerp: 0.08, // Subtle smoothness
+      wheelMultiplier: 1,
+      smoothWheel: true,
+    });
+
+    function raf(time) {
+      lenis.raf(time);
+      requestAnimationFrame(raf);
+    }
+    requestAnimationFrame(raf);
+
+    return () => {
+      lenis.destroy();
+    };
+  }, [reduced]);
 
   const scrollToId = (id) => (e) => {
     e.preventDefault();

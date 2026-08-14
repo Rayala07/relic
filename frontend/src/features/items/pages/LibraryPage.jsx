@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Link } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import { openSaveModal } from "../../../app/uiSlice";
 import itemService from "../services/item.service";
 import ItemCard from "../components/ItemCard";
 import SkeletonGrid from "../../../components/ui/SkeletonGrid";
@@ -8,6 +10,7 @@ import ResurfaceStrip from "../components/ResurfaceStrip";
 const FILTERS = ["ALL", "WEBPAGE", "DOCS", "YOUTUBE", "SOCIAL"];
 
 const LibraryPage = () => {
+  const dispatch = useDispatch();
   const [allItems, setAllItems] = useState([]);
   const [totalCount, setTotalCount] = useState(0);
   
@@ -150,13 +153,13 @@ const LibraryPage = () => {
             <p className="text-muted-foreground uppercase" style={{ fontSize: "11px", letterSpacing: "0.08em" }}>
               nothing saved yet
             </p>
-            <Link
-              to="/save"
-              className="text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase"
+            <button
+              onClick={() => dispatch(openSaveModal())}
+              className="bg-transparent border-none cursor-pointer text-muted-foreground hover:text-foreground transition-colors duration-150 uppercase"
               style={{ fontSize: "11px", letterSpacing: "0.08em" }}
             >
               save your first item →
-            </Link>
+            </button>
           </div>
         ) : null}
 

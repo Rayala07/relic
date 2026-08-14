@@ -28,47 +28,48 @@ const InputBlock = ({ url, onUrlChange, title, onTitleChange, urlError, onUrlErr
 
   if (isLoading) {
     return (
-      <div className="w-full flex flex-col gap-2 animate-in fade-in duration-300">
-        <Skeleton className="h-[64px] w-full rounded-xl border border-border/50 bg-background/50" />
-        <Skeleton className="h-[56px] w-full rounded-xl border border-border/30 bg-background/30" />
-        <Skeleton className="h-[58px] w-full rounded-xl mt-4 bg-foreground/10" />
+      <div className="w-full flex flex-col gap-3 animate-in fade-in duration-300">
+        <Skeleton className="h-[68px] w-full rounded-2xl border border-border/50 bg-background/50" />
+        <Skeleton className="h-[68px] w-full rounded-2xl border border-border/30 bg-background/30" />
+        <Skeleton className="h-[60px] w-full rounded-2xl mt-4 bg-foreground/10" />
       </div>
     );
   }
 
   return (
-    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-2">
+    <form onSubmit={handleSubmit} className="w-full flex flex-col gap-4">
       {/* URL Input */}
-      <div className={`relative flex items-center bg-background border ${urlError ? 'border-destructive/50 ring-1 ring-destructive/50' : 'border-border/50 focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/20'} transition-all duration-300`}>
-        <div className={`pl-4 pr-3 shrink-0 ${urlError ? 'text-destructive' : 'text-muted-foreground/50'}`}>
-          <RiLink size={18} />
+      <div>
+        <div className={`relative flex items-center bg-background/50 backdrop-blur-md rounded-2xl border ${urlError ? 'border-destructive/50 ring-2 ring-destructive/20' : 'border-border/50 hover:border-foreground/30 focus-within:border-foreground/80 focus-within:bg-background focus-within:ring-4 focus-within:ring-foreground/10'} transition-all duration-300 overflow-hidden shadow-sm`}>
+          <div className={`pl-5 pr-3 shrink-0 ${urlError ? 'text-destructive' : 'text-muted-foreground/50'}`}>
+            <RiLink size={20} />
+          </div>
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => {
+              onUrlChange(e.target.value);
+              if (urlError) onUrlErrorChange("");
+            }}
+            placeholder="Paste URL here..."
+            autoFocus
+            disabled={isLoading}
+            className="w-full bg-transparent border-none outline-none py-4 pr-5 text-[16px] text-foreground placeholder:text-muted-foreground/40 disabled:opacity-50"
+            style={{ caretColor: "var(--foreground)" }}
+          />
         </div>
-        <input
-          type="text"
-          value={url}
-          onChange={(e) => {
-            onUrlChange(e.target.value);
-            if (urlError) onUrlErrorChange("");
-          }}
-          placeholder="https://..."
-          autoFocus
-          disabled={isLoading}
-          className="w-full bg-transparent border-none outline-none py-5 pr-4 text-[15px] text-foreground placeholder:text-muted-foreground/30 disabled:opacity-50"
-          style={{ caretColor: "var(--foreground)" }}
-        />
+        {/* URL Validation Error */}
+        {urlError && (
+          <motion.p initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} className="text-destructive text-[11px] uppercase tracking-wider pl-4 mt-2">
+            {urlError}
+          </motion.p>
+        )}
       </div>
 
-      {/* URL Validation Error */}
-      {urlError && (
-        <p className="text-destructive text-[11px] uppercase tracking-wider pl-2 mt-1 mb-2">
-          {urlError}
-        </p>
-      )}
-
       {/* Title Input (Optional) */}
-      <div className="relative flex items-center bg-background border border-border/50 focus-within:border-foreground/60 focus-within:ring-1 focus-within:ring-foreground/20 transition-all duration-300">
-        <div className="pl-4 pr-3 shrink-0 text-muted-foreground/50">
-          <RiEditBoxLine size={18} />
+      <div className="relative flex items-center bg-background/50 backdrop-blur-md rounded-2xl border border-border/50 hover:border-foreground/30 focus-within:border-foreground/80 focus-within:bg-background focus-within:ring-4 focus-within:ring-foreground/10 transition-all duration-300 overflow-hidden shadow-sm">
+        <div className="pl-5 pr-3 shrink-0 text-muted-foreground/50">
+          <RiEditBoxLine size={20} />
         </div>
         <input
           type="text"
@@ -76,7 +77,7 @@ const InputBlock = ({ url, onUrlChange, title, onTitleChange, urlError, onUrlErr
           onChange={(e) => onTitleChange(e.target.value)}
           placeholder="Custom Title (Optional)"
           disabled={isLoading}
-          className="w-full bg-transparent border-none outline-none py-5 pr-4 text-[15px] text-foreground placeholder:text-muted-foreground/30 disabled:opacity-50"
+          className="w-full bg-transparent border-none outline-none py-4 pr-5 text-[16px] text-foreground placeholder:text-muted-foreground/40 disabled:opacity-50"
           style={{ caretColor: "var(--foreground)" }}
         />
       </div>
@@ -85,10 +86,12 @@ const InputBlock = ({ url, onUrlChange, title, onTitleChange, urlError, onUrlErr
       <button
         type="submit"
         disabled={isLoading || !url.trim()}
-        className="group relative w-full mt-4 bg-foreground text-background hover:bg-foreground/90 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed rounded-xl flex items-center justify-center overflow-hidden"
+        className="group relative w-full mt-4 bg-foreground text-background hover:bg-foreground/90 transition-all duration-300 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed rounded-2xl flex items-center justify-center overflow-hidden shadow-xl"
         style={{ padding: "18px" }}
       >
-        <span className="relative z-10 flex items-center gap-2 text-[12px] font-semibold tracking-[0.1em] uppercase">
+        <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-transparent via-background/20 to-transparent -translate-x-[200%] group-hover:translate-x-[200%] transition-transform duration-1000 ease-in-out" />
+        
+        <span className="relative z-10 flex items-center gap-2 text-[13px] font-bold tracking-[0.12em] uppercase">
           {isLoading ? (
             <>
               <Sparkles size={16} className="animate-pulse" />
@@ -145,6 +148,10 @@ const SavePage = () => {
 
   return (
     <div className="min-h-[calc(100vh-72px)] w-full bg-background flex flex-col items-center justify-center py-12 px-6 relative overflow-hidden">
+      
+      {/* Ambient Background Glows */}
+      <div className="absolute top-1/4 left-1/4 w-[40vw] h-[40vw] bg-foreground/5 blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute bottom-1/4 right-1/4 w-[30vw] h-[30vw] bg-foreground/5 blur-[100px] rounded-full pointer-events-none" />
 
       {/* ── TOAST NOTIFICATIONS ── */}
       <div className="fixed top-[96px] right-6 z-50 flex flex-col gap-4 pointer-events-none w-[calc(100%-48px)] sm:w-[400px]">
@@ -191,29 +198,51 @@ const SavePage = () => {
         </AnimatePresence>
       </div>
 
-      <div className="w-full max-w-[540px] flex flex-col items-center">
+      <div className="w-full max-w-[560px] flex flex-col items-center relative z-10">
 
         {/* ── PREMIUM HEADER ── */}
-        <div className="flex flex-col items-center text-center mb-10 w-full">
-          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-foreground/5 border border-foreground/10 text-muted-foreground mb-8">
-            <span className="text-[10px] uppercase tracking-widest font-semibold">Relic AI Pipeline</span>
-          </div>
-          <h1 className="text-foreground font-heading font-bold mb-4 tracking-tight" style={{ fontSize: "clamp(32px, 5vw, 48px)", lineHeight: 1.1 }}>
+        <div className="flex flex-col items-center text-center mb-12 w-full">
+          <motion.div 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-foreground/5 border border-foreground/10 text-muted-foreground mb-6"
+          >
+            <Sparkles size={12} className="text-foreground/50" />
+            <span className="text-[10px] uppercase tracking-widest font-bold">Relic AI Pipeline</span>
+          </motion.div>
+          
+          <motion.h1 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-transparent bg-clip-text bg-gradient-to-b from-foreground to-foreground/70 font-heading font-extrabold mb-4 tracking-tight" 
+            style={{ fontSize: "clamp(40px, 6vw, 56px)", lineHeight: 1.1 }}
+          >
             Save a resource
-          </h1>
-          <p className="text-muted-foreground" style={{ fontSize: "16px", lineHeight: 1.6, maxWidth: "400px" }}>
+          </motion.h1>
+          
+          <motion.p 
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-muted-foreground text-[16px] md:text-[17px] leading-relaxed max-w-[420px]"
+          >
             Paste a link to any webpage, youtube video, article or any link. We'll instantly extract and categorize it for your knowledge base.
-          </p>
+          </motion.p>
         </div>
 
         {/* ── THE CARD CONTAINER ── */}
-        <div className="w-full bg-card/30 backdrop-blur-3xl border border-border/50 rounded-[24px] p-3 shadow-2xl relative">
-
+        <motion.div 
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ delay: 0.3, type: "spring", stiffness: 200, damping: 20 }}
+          className="w-full bg-card/40 backdrop-blur-3xl border border-foreground/10 rounded-[32px] p-2 shadow-2xl relative"
+        >
           {/* Subtle top inner glow */}
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-px bg-gradient-to-r from-transparent via-foreground/20 to-transparent"></div>
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-[1px] bg-gradient-to-r from-transparent via-foreground/30 to-transparent"></div>
 
           {/* Central static form */}
-          <div className="bg-background/40 p-4 relative z-10">
+          <div className="bg-background/60 backdrop-blur-xl rounded-[24px] p-6 md:p-8 relative z-10 border border-foreground/5 shadow-inner">
             <InputBlock
               url={url}
               onUrlChange={setUrl}
@@ -228,8 +257,7 @@ const SavePage = () => {
               isLoading={loading}
             />
           </div>
-
-        </div>
+        </motion.div>
       </div>
     </div>
   );

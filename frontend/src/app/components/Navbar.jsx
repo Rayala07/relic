@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { useUser, useAuth } from "../../features/auth/components/AuthProvider";
+import { openSaveModal } from "../uiSlice";
 import { Search } from "lucide-react";
 import { ModeToggle } from "../../components/ModeToggle";
 import { motion } from "motion/react";
@@ -10,6 +12,7 @@ const Navbar = () => {
   const { user, isLoaded } = useUser();
   const { signOut } = useAuth();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
   const [hoveredLink, setHoveredLink] = useState(null);
@@ -58,22 +61,19 @@ const Navbar = () => {
       const isTyping = tag === "input" || tag === "textarea" || document.activeElement?.isContentEditable;
 
       // CMD/CTRL + K → Search
-      // Block browser's address bar/search trigger first, then navigate
       if (e.key === "k") {
-        e.preventDefault(); // Must be called before any async work
+        e.preventDefault();
         e.stopPropagation();
         navigate("/search");
         return;
       }
 
-      // CMD/CTRL + S → Save
-      // Block browser's "Save Page As" dialog, then navigate
-      // Exception: allow normal behavior inside text inputs so forms work
+      // CMD/CTRL + S → Save Modal
       if (e.key === "s") {
         if (!isTyping) {
-          e.preventDefault(); // Must be called before any async work
+          e.preventDefault();
           e.stopPropagation();
-          navigate("/save");
+          dispatch(openSaveModal());
         }
         return;
       }
@@ -81,7 +81,7 @@ const Navbar = () => {
 
     document.addEventListener("keydown", handleShortcut);
     return () => document.removeEventListener("keydown", handleShortcut);
-  }, [user, navigate]);
+  }, [user, navigate, dispatch]);
 
   // If on a public auth page, entirely hide the layout navigation wrapper
   if (pathname === "/login" || pathname === "/register") {
@@ -96,7 +96,7 @@ const Navbar = () => {
     { name: "HOME", path: "/" },
     { name: "LIBRARY", path: "/library" },
     { name: "COLLECTIONS", path: "/collections" },
-    { name: "SAVE", path: "/save", hint: "⌘S" },
+    { name: "SAVE", action: "save", hint: "⌘S" },
   ];
 
   const triggerLogout = async () => {
@@ -106,7 +106,7 @@ const Navbar = () => {
   };
 
   const isLinkActive = (link) =>
-    link.path === "/" ? pathname === "/" : pathname.startsWith(link.path);
+    link.path ? (link.path === "/" ? pathname === "/" : pathname.startsWith(link.path)) : false;
 
   return (
     <div ref={menuRef} className="relative z-50">
@@ -135,19 +135,17 @@ const Navbar = () => {
           >
             {navLinks.map((link) => {
               const active = isLinkActive(link);
-              const isTarget = hoveredLink ? hoveredLink === link.path : active;
+              const identifier = link.path || link.action;
+              const isTarget = hoveredLink ? hoveredLink === identifier : active;
 
-              return (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  onMouseEnter={() => setHoveredLink(link.path)}
-                  className={`relative px-4 py-2 rounded-md text-[11px] tracking-[0.08em] uppercase no-underline whitespace-nowrap shrink-0 transition-colors duration-300 z-10 ${
-                    active 
-                      ? isTarget ? 'text-background font-medium' : 'text-foreground font-medium'
-                      : isTarget ? 'text-foreground' : 'text-muted-foreground'
-                  }`}
-                >
+              const sharedClasses = `relative px-4 py-2 rounded-md text-[11px] tracking-[0.08em] uppercase no-underline whitespace-nowrap shrink-0 transition-colors duration-300 z-10 ${
+                active 
+                  ? isTarget ? 'text-background font-medium' : 'text-foreground font-medium'
+                  : isTarget ? 'text-foreground' : 'text-muted-foreground'
+              }`;
+
+              const content = (
+                <>
                   <span className="relative z-10">{link.name}</span>
                   {isTarget && (
                     <motion.div
@@ -156,6 +154,30 @@ const Navbar = () => {
                       transition={{ type: "spring", stiffness: 400, damping: 30 }}
                     />
                   )}
+                </>
+              );
+
+              if (link.action === "save") {
+                return (
+                  <button
+                    key={link.name}
+                    onClick={() => dispatch(openSaveModal())}
+                    onMouseEnter={() => setHoveredLink(link.action)}
+                    className={`${sharedClasses} bg-transparent border-none cursor-pointer`}
+                  >
+                    {content}
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={link.name}
+                  to={link.path}
+                  onMouseEnter={() => setHoveredLink(link.path)}
+                  className={sharedClasses}
+                >
+                  {content}
                 </Link>
               );
             })}
@@ -241,12 +263,29 @@ const Navbar = () => {
         <div className="fixed top-[72px] left-0 right-0 bg-background border-b border-border z-[49] px-6">
           {navLinks.map((link, idx) => {
             const active = isLinkActive(link);
+            const sharedClasses = `block py-4 text-[11px] tracking-[0.08em] uppercase no-underline transition-colors ${idx < navLinks.length - 1 ? 'border-b border-border' : ''} ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`;
+            
+            if (link.action === "save") {
+              return (
+                <button
+                  key={link.name}
+                  onClick={() => {
+                    setMenuOpen(false);
+                    dispatch(openSaveModal());
+                  }}
+                  className={`${sharedClasses} w-full text-left bg-transparent border-none cursor-pointer`}
+                >
+                  {link.name}
+                </button>
+              );
+            }
+
             return (
               <Link
                 key={link.name}
                 to={link.path}
                 onClick={() => setMenuOpen(false)}
-                className={`block py-4 text-[11px] tracking-[0.08em] uppercase no-underline transition-colors ${idx < navLinks.length - 1 ? 'border-b border-border' : ''} ${active ? 'text-foreground' : 'text-muted-foreground hover:text-foreground'}`}
+                className={sharedClasses}
               >
                 {link.name}
               </Link>
