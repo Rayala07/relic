@@ -29,20 +29,15 @@ export const verifyToken = [
       // Attach the ID for downstream controllers
       req.userId = supabaseUserId;
 
-      // JIT Provisioning: Ensure the user exists in our MongoDB
-      const existingUser = await User.findById(supabaseUserId);
-      if (!existingUser) {
-        // Extract basic details
-        const email = supabaseUser.email || "";
-        const name = supabaseUser.user_metadata?.first_name || email.split("@")[0] || "Unknown User";
-
-        await User.create({
-          _id: supabaseUserId,
-          name,
-          email,
-        });
-        console.log(`[AUTH] JIT Provisioned new user: ${supabaseUserId}`);
-      }
+      // Fix #5 — JIT Provisioning: single atomic upsert instead of findById + conditional create.
+      // $setOnInsert only writes on first-time creation; existing users pay zero write cost.
+      const email = supabaseUser.email || "";
+      const name = supabaseUser.user_metadata?.first_name || email.split("@")[0] || "Unknown User";
+      await User.findByIdAndUpdate(
+        supabaseUserId,
+        { $setOnInsert: { name, email } },
+        { upsert: true, new: false }
+      );
 
       next();
     } catch (error) {

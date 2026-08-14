@@ -54,7 +54,9 @@ const collectionSchema = new mongoose.Schema(
 );
 
 // Prevent duplicate auto-collections for the same tag set per user
-collectionSchema.index({ user: 1, sourceTags: 1, type: 1 });
+// Fix #9 — unique: true enforces race-condition safety at the DB level.
+// Two concurrent pipeline workers can no longer create duplicate auto-collections.
+collectionSchema.index({ user: 1, sourceTags: 1, type: 1 }, { unique: true, sparse: true });
 
 const Collection = mongoose.model("Collection", collectionSchema);
 

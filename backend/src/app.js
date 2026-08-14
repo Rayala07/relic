@@ -1,6 +1,7 @@
 import express from "express";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 import itemRoutes from "./routes/item.routes.js";
 import searchRoutes from "./routes/search.routes.js";
 import collectionRoutes from "./routes/collection.routes.js";
@@ -12,6 +13,7 @@ import "dotenv/config";
 
 const app = express();
 
+app.use(helmet());
 app.use(express.json());
 app.use(
   cors({
@@ -89,5 +91,10 @@ app.use("/api/search", aiLimiter, searchRoutes);
 app.use("/api/collections", aiLimiter, collectionRoutes);
 app.use("/api/resurface", resurfaceRouter);
 app.use("/api/stats", statsRoutes);
+
+app.use((err, req, res, next) => {
+  console.error("[UNHANDLED ERROR]", err);
+  res.status(err.status ?? 500).json({ success: false, message: err.message ?? "Internal server error" });
+});
 
 export default app;

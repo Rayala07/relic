@@ -41,8 +41,12 @@ const RegisterForm = () => {
 
       if (signUpError) throw signUpError;
 
-      // Supabase sends the email automatically if Email Confirmations are enabled in the dashboard.
-      // We will show the OTP verification screen.
+      // Supabase silently "succeeds" for existing emails (email enumeration protection).
+      // The signal is data.user.identities being an empty array — no error is thrown.
+      if (data?.user?.identities?.length === 0) {
+        throw new Error("An account with this email already exists. Please sign in instead.");
+      }
+
       setStatusText("SENDING CODE...");
       setPendingVerification(true);
     } catch (err) {

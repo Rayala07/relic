@@ -66,6 +66,12 @@ export const createItem = async (req, res) => {
       });
     }
 
+    // Fix #16 — Duplicate URL guard: return 409 if this user already saved this URL.
+    const existing = await Item.findOne({ user: req.userId, url }, { _id: 1 }).lean();
+    if (existing) {
+      return res.status(409).json({ success: false, message: "Already saved", data: existing });
+    }
+
     // If the user didn't provide a title, generate one via LLM.
     // This runs synchronously before saving so the item is immediately
     // usable with a meaningful title — even before the pipeline runs.
@@ -170,22 +176,16 @@ export const getItems = async (req, res) => {
  */
 export const getItemById = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id)
+    // Fix #8 — Single scoped query: ownership enforced at the DB level,
+    // not via a JS comparison after fetching. Avoids two round-trips.
+    const item = await Item.findOne({ _id: req.params.id, user: req.userId })
       .select({ "ai.embedding": 0 })
       .lean();
 
     if (!item) {
-      return res
-        .status(404)
-        .json({ success: false, message: "Item not found" });
-    }
-
-    // Ownership check — prevents user A from reading user B's items by ID
-    if (item.user.toString() !== req.userId) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorised to access this item",
-      });
+      // Returns 404 for both "not found" and "wrong owner" — intentional.
+      // This avoids confirming the existence of another user's item.
+      return res.status(404).json({ success: false, message: "Item not found" });
     }
 
     return res.status(200).json({ success: true, data: item });
@@ -210,20 +210,13 @@ export const getItemById = async (req, res) => {
  */
 export const deleteItem = async (req, res) => {
   try {
-    const item = await Item.findById(req.params.id);
+    // Fix #8 — Single scoped findOne instead of findById + JS ownership check.
+    const item = await Item.findOne({ _id: req.params.id, user: req.userId });
 
     if (!item) {
       return res
         .status(404)
         .json({ success: false, message: "Item not found" });
-    }
-
-    // Ownership check — prevents user A from deleting user B's items
-    if (item.user.toString() !== req.userId) {
-      return res.status(403).json({
-        success: false,
-        message: "You are not authorised to delete this item",
-      });
     }
 
     await item.deleteOne();

@@ -51,6 +51,11 @@ export async function translateToEnglish(content) {
 
   // First 500 chars is enough for franc to reliably detect the language
   const sample = body?.slice(0, 500) || title || "";
+
+  // Fix #17 — franc-min is unreliable below ~150 chars; treat short content as English
+  // to avoid a costly spurious translation call on e.g. tweet-length text.
+  if (sample.length < 150) return { ...content, originalLanguage: "und" };
+
   const langCode = franc(sample); // ISO 639-3: "eng", "fra", "hin", "und", etc.
 
   // "und" = undetermined — skip to avoid corrupting content with a bad translation

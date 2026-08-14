@@ -235,13 +235,17 @@ export async function extractYoutube(url) {
     parsed.searchParams.get("v") ||           // youtube.com/watch?v=xxx
     parsed.pathname.split("/").pop();          // youtu.be/xxx
 
-  const segments  = await YoutubeTranscript.fetchTranscript(videoId);
-  const body      = segments.map((s) => s.text).join(" ");
+  const segments = await YoutubeTranscript.fetchTranscript(videoId);
+  const body     = segments.map((s) => s.text).join(" ");
 
-  return normalise({
-    title: `YouTube video (${videoId})`,
-    body,
-  });
+  // Fix #12 — Fetch real title via YouTube's free oEmbed (no API key needed).
+  let title = `YouTube video (${videoId})`; // safe fallback
+  try {
+    const { data } = await http.get(`https://www.youtube.com/oembed?url=${encodeURIComponent(url)}&format=json`);
+    if (data.title) title = data.title;
+  } catch { /* non-fatal — fallback title is fine */ }
+
+  return normalise({ title, body });
 }
 
 // ── Twitter / X extractor ─────────────────────────────────────────────────────

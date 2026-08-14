@@ -95,25 +95,25 @@ export async function autoOrganizeItem(itemId, userId) {
       if (!alreadyExists) {
         const allItemIds = [itemId, ...qualifyingItems.map((i) => i._id)];
 
-        // Fetch the actual human-readable titles of all items being grouped.
-        // The LLM reads these to generate a contextually accurate name instead
-        // of mechanically joining raw taxonomy tags like "Fashion + Clothing + Shirt".
         const itemDocs = await Item.find(
           { _id: { $in: allItemIds } },
           { title: 1 }
         ).lean();
         const itemTitles = itemDocs.map((d) => d.title).filter(Boolean);
 
-        // Generate a sharp, human-readable name via Groq LLaMA (~200ms)
         const collectionName = await generateCollectionName(itemTitles, topSharedTags);
 
-        await Collection.create({
-          name: collectionName,
-          type: "auto",
-          sourceTags: topSharedTags,
-          user: userId,
-          items: allItemIds,
-        });
+        try {
+          await Collection.create({
+            name: collectionName,
+            type: "auto",
+            sourceTags: topSharedTags,
+            user: userId,
+            items: allItemIds,
+          });
+        } catch (err) {
+          if (err.code !== 11000) throw err; // Fix #9 — ignore duplicate key, re-throw anything else
+        }
       }
     } else {
     }
